@@ -1,92 +1,87 @@
-// imagesManager.js
-// API para gestión de imágenes de productos
+/**
+ * imagesManager.js
+ * Cliente para gestionar la API de imágenes.
+ */
 
-const BASE = '/imagenes';
+const IMAGES_API_BASE = '/imagenes';
 
-// Helper: fetch JSON with sane defaults
-async function requestJSON(url, options = {}) {
-  const res = await fetch(url, options);
-  let data;
-  try { data = await res.json(); } catch { data = null; }
-  if (!res.ok) {
-    const msg = data?.error || data?.message || res.statusText || 'Error de red';
-    throw new Error(msg);
-  }
-  return data;
-}
-
-const imagenesAPI = {
+const imagesManager = {
+  
   /**
-   * Obtener todas las imágenes
-   * GET /api/imagenes
+   * Obtiene la lista de imágenes de un producto.
+   * @param {number|string} productoId 
+   * @returns {Promise<Array>} Lista de objetos imagen (extraída de response.data)
    */
-  async getAll() {
-    return requestJSON(`${BASE}`, { method: 'GET' });
+  async getByProduct(productoId) {
+    try {
+      const response = await fetch(`${IMAGES_API_BASE}/producto/${productoId}`);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Error al cargar imágenes');
+      }
+      // El backend devuelve { success: true, data: [...] }
+      return result.data || [];
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   },
 
   /**
-   * Obtener imágenes por producto
-   * GET /api/imagenes/by-producto/:producto_id
+   * Sube una nueva imagen para un producto.
+   * @param {number|string} productoId 
+   * @param {File} fileObject - El archivo obtenido de un input type="file"
+   * @returns {Promise<Object>} La imagen creada (extraída de response.data)
    */
-  async getByProducto(producto_id) {
-    return requestJSON(`${BASE}/by-producto/${producto_id}`, { method: 'GET' });
+  async upload(productoId, fileObject) {
+    const formData = new FormData();
+    formData.append('image', fileObject); // 'image' debe coincidir con upload.single('image') del backend
+
+    try {
+      const response = await fetch(`${IMAGES_API_BASE}/producto/${productoId}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Error al subir imagen');
+      }
+      
+      // El backend devuelve { success: true, message: '...', data: { imagen_id... } }
+      return result.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   },
 
   /**
-   * Subir/insertar imagen de producto (multipart)
-   * POST /api/imagenes
-   * form-data: { file: <binary>, producto_id: <int> }
+   * Elimina una imagen por su ID.
+   * @param {number|string} imagenId 
+   * @returns {Promise<Object>} Resultado completo { success, message }
    */
-  async insert({ producto_id, file }) {
-    if (!file) throw new Error('Archivo de imagen requerido');
-    if (!producto_id) throw new Error('producto_id es obligatorio');
+  async delete(imagenId) {
+    try {
+      const response = await fetch(`${IMAGES_API_BASE}/${imagenId}`, {
+        method: 'DELETE'
+      });
 
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('producto_id', String(producto_id));
+      const result = await response.json();
 
-    // Importante: NO establecer Content-Type, fetch lo maneja con boundary
-    return requestJSON(`${BASE}`, {
-      method: 'POST',
-      body: fd
-    });
-  },
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Error al eliminar imagen');
+      }
 
-  /**
-   * Actualizar imagen (puede cambiar producto_id y/o reemplazar archivo)
-   * PUT /api/imagenes/:imagen_id
-   * form-data opcional: { file?: <binary>, producto_id?: <int> }
-   */
-  async update({ imagen_id, producto_id, file }) {
-    if (!imagen_id) throw new Error('imagen_id es obligatorio');
-
-    const fd = new FormData();
-    if (file) fd.append('file', file);
-    if (producto_id != null) fd.append('producto_id', String(producto_id));
-
-    return requestJSON(`${BASE}/${imagen_id}`, {
-      method: 'PUT',
-      body: fd
-    });
-  },
-
-  /**
-   * Eliminar imagen
-   * DELETE /api/imagenes/:imagen_id
-   */
-  async remove(imagen_id) {
-    if (!imagen_id) throw new Error('imagen_id es obligatorio');
-    return requestJSON(`${BASE}/${imagen_id}`, { method: 'DELETE' });
-  },
-
-  /**
-   * Refrescar lista de productos sin imágenes (id + nombre)
-   * GET /api/imagenes/refresh-missing-products
-   * Respuesta: [ { producto_id, nombre }, ... ]
-   */
-  async refreshMissingProducts() {
-    return requestJSON(`${BASE}/refresh-missing-products`, { method: 'GET' });
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 };
 
-export { imagenesAPI };
+// Exportar globalmente si no usas módulos ES6, o usar "export default" si es módulo
+window.imagesManager = imagesManager;

@@ -1,12 +1,3 @@
-SET ANSI_NULLS ON;
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_PADDING ON;
-SET ANSI_WARNINGS ON;
-SET ARITHABORT ON;
-SET CONCAT_NULL_YIELDS_NULL ON;
-SET NUMERIC_ROUNDABORT OFF;
-GO
-
 /* ============================
    Tabla de LOG de errores
    ============================ */
@@ -21,23 +12,15 @@ CREATE TABLE logs (
 );
 GO
 
--- Units
-DROP TABLE IF EXISTS units;
+-- Unidad de Medida
+DROP TABLE IF EXISTS unidad;
 GO
-CREATE TABLE units (
+CREATE TABLE unidad (
   unit_id    INT IDENTITY(1,1) PRIMARY KEY,
   nombre       NVARCHAR(50) NOT NULL
 );
 GO
 
--- Sizes
-DROP TABLE IF EXISTS sizes;
-GO
-CREATE TABLE sizes (
-  size_id    INT IDENTITY(1,1) PRIMARY KEY,
-  nombre       NVARCHAR(50) NOT NULL
-);
-GO
 
 /* ============================
    CATEGORIAS
@@ -46,34 +29,16 @@ DROP TABLE IF EXISTS categorias;
 GO
 CREATE TABLE categorias (
   categoria_id INT IDENTITY(1,1) PRIMARY KEY,
-  nombre       NVARCHAR(100) UNIQUE NOT NULL,
-  descripcion  NVARCHAR(255)
+  nombre       NVARCHAR(100) UNIQUE NOT NULL
 );
 GO
 
--- Secondary Categories
-DROP TABLE IF EXISTS categorias_secundarias;
-GO
-CREATE TABLE categorias_secundarias (
-  categoria_secundaria_id INT IDENTITY(1,1) PRIMARY KEY,
-  nombre                   NVARCHAR(50) NOT NULL
-);
-GO
-
--- Subcategories
-DROP TABLE IF EXISTS subcategorias;
-GO
-CREATE TABLE subcategorias (
-  subcategoria_id INT IDENTITY(1,1) PRIMARY KEY,
-  nombre            NVARCHAR(50) NOT NULL
-);
-GO
 
 -- Brands
-DROP TABLE IF EXISTS brands;
+DROP TABLE IF EXISTS marcas;
 GO
-CREATE TABLE brands (
-  brand_id   INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE marcas (
+  marca_id   INT IDENTITY(1,1) PRIMARY KEY,
   nombre       NVARCHAR(50) NOT NULL
 );
 GO
@@ -94,11 +59,9 @@ CREATE TABLE productos (
   categoria_principal_id    INT           NOT NULL,
   categoria_secundaria_id   INT           NULL,
   subcategoria_id           INT           NULL,
-  unit_id                   INT           NOT NULL,
-  unit_value                DECIMAL(10,2) NOT NULL,
-  size_id                   INT           NOT NULL,
-  size_value                NVARCHAR(50)  NOT NULL,
-  brand_id                  INT           NOT NULL,
+  unidad_id                   INT           NOT NULL,
+  unidad_valor                DECIMAL(10,2) NOT NULL,
+  marca_id                  INT           NOT NULL,
   fecha_creacion            DATETIME2     NOT NULL 
                                CONSTRAINT df_productos_fecha_creacion DEFAULT (GETDATE()),
 
@@ -778,7 +741,7 @@ BEGIN
 END;
 GO
 
--- Listados y consultas (UPDATED for new schema)
+-- Listados y consultas 
 CREATE OR ALTER PROCEDURE productos_get_all
 AS
 BEGIN

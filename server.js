@@ -94,7 +94,7 @@ app.use('/user-resources', requireAuth, userStatic);
 const cajasRouter = require('./Server/Routes/cajasRouter.js');                   // Cajas y movimientos
 app.use('/cajas', cajasRouter);
 
-const categoriasRouter = require('./Server/Routes/categoriasRouter.js');                   // Cajas y movimientos
+const categoriasRouter = require('./Server/Routes/categoriasRouter.js');                   // Categorías primarias
 app.use('/categorias', categoriasRouter);
 
 const categoriasSecundariasRouter = require('./Server/Routes/categorias_secundariasRouter.js'); // Categorías secundarias
@@ -129,7 +129,7 @@ const insertProductoWithStockRouter = require('./Server/Routes/insert_producto_w
 app.use('/productos', insertProductoWithStockRouter);
 
 // Gestión de imágenes de productos
-const imagenesRouter = require('./Server/Routes/imagenes.js');
+const imagenesRouter = require('./Server/Routes/imagenesRouter.js');
 app.use('/imagenes', imagenesRouter);
 
 /**
