@@ -3,184 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Panel de Administración - Productos</title>
+  <title>Zafiro Home — Gestión de Productos</title>
 
-  <!-- Iconos y fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@700&display=swap" rel="stylesheet" />
-
-  <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
 
-  <!-- Estilos propios -->
-  <link rel="stylesheet" href="/admin-resources/css/admin.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(45, 71, 120)', 'primary-dark': 'rgb(30, 48, 82)',
+            secondary: 'rgb(100, 140, 188)', accent: '#f08a5d', 'accent-dark': '#d87245',
+            danger: '#a5230c', success: '#16a34a',
+            bg: '#f6f7fb', card: '#ffffff', textMain: '#333333', textMuted: '#737b90',
+          },
+          fontFamily: { body: ['Open Sans', 'sans-serif'], heading: ['Poppins', 'sans-serif'] },
+          boxShadow: {
+            'custom': '0 4px 12px rgba(45, 71, 120, 0.35)',
+            'custom-hover': '0 10px 20px rgba(45, 71, 120, 0.1)',
+          }
+        }
+      }
+    }
+  </script>
 
-  <!-- Estilos movidos -->
-  <style>
-    #toastContainer { 
-      position: fixed; 
-      right: 16px; 
-      bottom: 16px; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 8px; 
-      z-index: 2000; 
-    }
-    .toast { 
-      min-width: 260px; 
-      max-width: 420px; 
-      padding: 12px 14px; 
-      border-radius: 10px; 
-      box-shadow: 0 6px 24px rgba(0,0,0,.12);
-      font-family: "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
-      font-size: 14px; 
-      line-height: 1.35;
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      animation: slidein .2s ease-out; 
-    }
-    .toast i { opacity: .9; }
-    .toast-success { background: #e7f6ec; color: #145a32; }
-    .toast-error   { background: #fdecea; color: #7a2e2e; }
-    .toast-info    { background: #eef2ff; color: #1f3a8a; }
-    @keyframes slidein { 
-      from { transform: translateY(8px); opacity: 0; } 
-      to   { transform: translateY(0); opacity: 1; } 
-    }
-
-    /* Ajuste de ancho del select de búsqueda */
-    #tipoBusqueda { 
-      max-width: 120px; 
-    }
-  </style>
+  <link rel="stylesheet" href="/admin-resources/css/dashboards.css" />
 </head>
-<body class="page-body">
-  <div class="top-banner">Panel de Administración - Productos</div>
+<body class="font-body bg-bg text-textMain overflow-x-hidden">
 
-  <nav class="navbar">
-    <div class="navbarcontainer">
-      <a class="navbar-store-title" href="#">
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80" alt="Zafiro Home" height="40" class="navbar-logo me-2">
-        <span>Zafiro Home</span>
-      </a>
-      <a class="btn" href="/admin-resources/pages/admin.html">Regresar al panel general</a>
-    </div>
-  </nav>
+  <div class="flex min-h-screen w-full relative">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[990] hidden lg:hidden"></div>
 
-  <main class="main-content">
-    <section class="card scroll-reveal" id="admin-header">
-      <h1 class="admin-title">Panel: Productos</h1>
-      <p class="admin-subtitle">Administración de productos del inventario.</p>
-    </section>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[1000] w-[260px] bg-primary text-white flex flex-col transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0">
+      <div class="h-[70px] flex items-center px-6 gap-4 bg-primary-dark shrink-0">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80" alt="Logo" class="w-10 h-10 rounded-full object-cover">
+        <span class="font-heading font-bold text-lg">Zafiro Home</span>
+        <button id="sidebar-close" class="ml-auto lg:hidden text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+      </div>
 
-    <!-- Búsqueda por ID o Nombre -->
-    <section class="card p-3 mb-4 shadow-sm scroll-reveal">
-      <div class="card-head">
-        <h2 class="mb-3">Búsqueda</h2>
-        <div class="actions">
-          <div class="input-group">
-            <input type="text" id="inputBuscar" class="form-control" placeholder="ID o Nombre…" />
-            <label for="tipoBusqueda">Tipo de búsqueda</label>
-            <select id="tipoBusqueda" class="form-control">
-              <option value="id">ID</option>
-              <option value="nombre">Nombre</option>
-            </select>
-            <button id="btnBuscar" class="btn btn-ghost">
-              <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
-            </button>
+      <div class="block lg:hidden p-6 bg-black/15 border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover">
+          <div>
+            <div id="sidebar-username" class="font-bold text-sm text-white">Cargando…</div>
+            <div id="sidebar-role" class="text-xs text-white/60">Cargando…</div>
           </div>
         </div>
       </div>
-      <div class="table-responsive mt-3">
-        <table id="tablaBusqueda" class="display table table-hover w-100">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Precio</th>
-              <th>Categoría</th>
-              <th>Marca</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="6" class="text-muted">Realiza una búsqueda para ver los resultados.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
 
-    <!-- Listado general -->
-    <section class="card p-3 mb-5 shadow-sm scroll-reveal">
-      <div class="card-head">
-        <h2 class="mb-3">Listado de Productos</h2>
-        <div class="actions">
-          <button id="btnRefrescar" class="btn btn-outline-info">
-            <i class="fa-solid fa-rotate me-1"></i> Refrescar
-          </button>
-          <a href="/admin-resources/pages/panels/nuevo_producto.html" class="btn btn-success">
-            <i class="fa-solid fa-plus me-1"></i> Agregar
-          </a>
-          <button id="btnVerActivos" class="btn btn-primary">
-            <i class="fa-solid fa-eye me-1"></i> Ver Activos
-          </button>
+      <ul class="list-none py-4 flex-1 overflow-y-auto">
+        <li><a href="/admin-resources/pages/admin.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a></li>
+        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Inventario</li>
+        <li><a href="/admin-resources/pages/panels/productos.html" class="flex items-center px-6 py-3.5 text-white bg-white/10 border-l-4 border-accent transition-colors gap-4"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Productos</a></li>
+        <li><a href="/admin-resources/pages/panels/categorias.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-layer-group w-5 text-center"></i> Categorías</a></li>
+        <li><a href="/admin-resources/pages/panels/marcas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-tags w-5 text-center"></i> Marcas</a></li>
+        <li><a href="/admin-resources/pages/panels/cajas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-box w-5 text-center"></i> Cajas</a></li>
+        <li><a href="/admin-resources/pages/panels/unidadesTamano.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-ruler w-5 text-center"></i> Unidades de Tamaño</a></li>
+        <li><a href="/admin-resources/pages/panels/unidadesVolumen.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-flask w-5 text-center"></i> Unidades de Volumen</a></li>
+        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Administración</li>
+        <li><a href="/admin-resources/pages/panels/usuarios.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-users w-5 text-center"></i> Usuarios</a></li>
+      </ul>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 lg:ml-[260px]">
+
+      <header class="h-[70px] bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm sticky top-0 z-[900]">
+        <button id="menu-toggle" class="lg:hidden text-primary text-2xl p-2 focus:outline-none" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+        <div class="hidden sm:flex items-center gap-6 ml-auto">
+          <div class="flex items-center gap-4">
+            <a href="/admin-resources/pages/admin.html" class="text-primary font-semibold flex items-center gap-2 hover:text-accent transition-colors"><i class="fa-solid fa-house"></i> Inicio</a>
+            <img id="header-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover shadow-sm">
+            <div class="flex flex-col">
+              <span id="header-username" class="font-bold text-sm leading-tight text-textMain">Cargando…</span>
+              <span id="header-role" class="text-xs text-textMuted">Cargando…</span>
+            </div>
+          </div>
+          <button id="logout-btn" class="bg-danger text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-red-800 transition-colors flex items-center gap-2 shadow-sm"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
         </div>
-      </div>
+        <button id="logout-btn-mobile" class="sm:hidden bg-danger text-white px-3 py-1.5 rounded-md font-semibold text-xs hover:bg-red-800 transition-colors ml-auto" aria-label="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </header>
 
-      <div class="table-responsive">
-        <table id="tablaProductos" class="display table table-hover w-100">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Precio</th>
-              <th>Categoría</th>
-              <th>Marca</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="8" class="text-muted">Presiona 'Refrescar' para cargar los productos.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+      <main class="p-4 sm:p-8 flex-1">
 
-  <footer>
-    <p>© 2025 Zafiro Home. Todos los derechos reservados.</p>
-  </footer>
+        <section id="admin-header" class="bg-primary text-white rounded-xl p-6 sm:p-8 shadow-custom mb-6">
+          <h1 class="font-heading text-2xl sm:text-3xl font-bold mb-2">Gestión de Productos</h1>
+          <p class="text-blue-200 text-sm sm:text-base">Administración de productos del inventario.</p>
+        </section>
 
-  <!-- Modal confirmación de eliminación -->
+        <!-- Búsqueda -->
+        <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
+          <h2 class="font-heading text-xl font-bold text-primary m-0 mb-5">Búsqueda</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_140px_auto] gap-3 mb-5">
+            <input type="text" id="inputBuscar" placeholder="ID o Nombre…"
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <select id="tipoBusqueda" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+              <option value="id">ID</option>
+              <option value="nombre">Nombre</option>
+            </select>
+            <button id="btnBuscar" class="bg-secondary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-[#5579a3] transition-colors flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-magnifying-glass"></i> Buscar
+            </button>
+          </div>
+
+          <div class="overflow-x-auto w-full">
+            <table id="tablaBusqueda" class="display w-full text-left">
+              <thead>
+                <tr>
+                  <th>ID</th><th>Nombre</th><th>Precio</th>
+                  <th>Categoría</th><th>Marca</th><th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" class="table-message">Realiza una búsqueda para ver los resultados.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Listado general -->
+        <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
+            <h2 class="font-heading text-xl font-bold text-primary m-0">Listado de Productos</h2>
+            <div class="flex flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
+              <button id="btnRefrescar" class="bg-secondary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-[#5579a3] transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-rotate"></i> <span class="hidden sm:inline">Refrescar</span>
+              </button>
+              <button id="btnVerActivos" class="bg-primary-dark text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-eye"></i> <span class="hidden sm:inline">Ver Activos</span>
+              </button>
+              <a href="/admin-resources/pages/panels/nuevo_producto.html" class="flex-1 md:flex-none bg-primary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Nuevo producto</span><span class="sm:hidden">Nuevo</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto w-full">
+            <table id="tablaProductos" class="display w-full text-left">
+              <thead>
+                <tr>
+                  <th>ID</th><th>Nombre</th><th>Descripción</th>
+                  <th>Precio</th><th>Categoría</th><th>Marca</th>
+                  <th>Estado</th><th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="8" class="table-message">Presiona 'Refrescar' para cargar los productos.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================ MODAL: Confirmar eliminación ============================ -->
   <div class="modal" id="modalConfirmDelete" aria-hidden="true" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-header">
-        <h3 class="modal-title">Confirmar eliminación</h3>
-        <button class="btn-close" id="closeDeleteModalBtn" aria-label="Cerrar">
-          <i class="fa-solid fa-xmark"></i>
+    <div class="modal-dialog max-w-[420px] text-center">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" id="closeDeleteModalBtn" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-danger text-5xl mb-3"><i class="fa-regular fa-circle-xmark"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-2">Confirmar eliminación</h3>
+      <p id="deleteMessage" class="text-textMuted mb-6 text-sm">¿Seguro que deseas eliminar este producto?</p>
+      <div class="flex flex-col sm:flex-row justify-center gap-3">
+        <button type="button" id="cancelDeleteBtn" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full">Cancelar</button>
+        <button type="button" id="confirmDeleteBtn" class="px-5 py-2.5 rounded-md font-semibold bg-danger text-white hover:bg-red-800 transition-colors w-full flex items-center justify-center gap-2">
+          <i class="fa-solid fa-trash-can"></i> Eliminar
         </button>
-      </div>
-      <div class="modal-body">
-        <p id="deleteMessage" class="mb-3">¿Seguro que deseas eliminar este producto?</p>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-ghost" id="cancelDeleteBtn">Cancelar</button>
-          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-            <i class="fa-solid fa-trash-can me-1"></i> Eliminar
-          </button>
-        </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast container -->
+  <!-- Toasts -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- jQuery + DataTables base -->
+  <!-- jQuery + DataTables -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+  <!-- Sesión + sidebar móvil + logout -->
+  <script src="/admin-resources/scripts/sessionManager.js"></script>
 
   <!-- API y Control del panel -->
   <script type="module" src="/admin-resources/scripts/api/productosManager.js"></script>

@@ -1,0 +1,174 @@
+/* ============================================================
+   Zafiro Home — Dashboards CSS (overrides for Tailwind UI)
+   Solo lo necesario: visibilidad de modales, toasts y
+   ajustes a DataTables. El layout y los colores se manejan
+   por completo con Tailwind (CDN).
+   ============================================================ */
+
+/* -------- Modales (clase .modal + .show) -------------------- */
+.modal{
+  display:none !important;
+  position:fixed; inset:0; z-index:2000;
+  background:rgba(17,24,39,.55);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  padding:2rem 1rem;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.modal.show{
+  display:flex !important;
+  justify-content:center;
+  animation:zh-fade .18s ease-out;
+}
+.modal .modal-dialog{
+  background:#fff;
+  border-radius:.75rem;
+  width:100%;
+  max-width:560px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  padding:1.5rem 1.5rem 1.25rem;
+  position:relative;
+  margin:auto;
+  animation:zh-pop .22s ease-out;
+}
+.modal .modal-dialog.modal-lg{ max-width:720px; }
+.modal .modal-dialog.modal-xl{ max-width:960px; }
+body.modal-open{ overflow:hidden; }
+@keyframes zh-fade{from{opacity:0}to{opacity:1}}
+@keyframes zh-pop{
+  from{opacity:0;transform:translateY(-12px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* -------- Toasts -------------------------------------------- */
+#toastContainer{
+  position:fixed; right:1.25rem; bottom:1.25rem; z-index:9999;
+  display:flex; flex-direction:column; gap:.6rem;
+  max-width:90vw;
+}
+.toast{
+  display:flex; align-items:center; gap:.6rem;
+  background:#fff;
+  border-left:4px solid rgb(45,71,120);
+  color:#333;
+  padding:.75rem 1rem;
+  border-radius:.5rem;
+  box-shadow:0 6px 18px rgba(45,71,120,.18);
+  font:600 .875rem/1.2 "Open Sans",sans-serif;
+  min-width:220px;
+  transition:opacity .18s, transform .18s;
+}
+.toast i{font-size:1.05rem}
+.toast-success{border-left-color:#16a34a;color:#15803d}
+.toast-error  {border-left-color:#a5230c;color:#a5230c}
+.toast-info   {border-left-color:rgb(100,140,188);color:rgb(45,71,120)}
+.toast-warning{border-left-color:#f08a5d;color:#b45309}
+
+/* -------- DataTables override (tema Tailwind) --------------- */
+.dataTables_wrapper{ font-family:"Open Sans",sans-serif; color:#333 }
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate{
+  margin:.6rem 0;
+  font-size:.85rem;
+  color:#737b90;
+}
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select{
+  border:1px solid #d1d5db;
+  border-radius:.375rem;
+  padding:.35rem .55rem;
+  background:#fff;
+  margin-left:.4rem;
+}
+.dataTables_wrapper .dataTables_filter input:focus,
+.dataTables_wrapper .dataTables_length select:focus{
+  outline:none;
+  border-color:rgb(100,140,188);
+  box-shadow:0 0 0 3px rgba(100,140,188,.18);
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  border:1px solid transparent !important;
+  border-radius:.375rem !important;
+  padding:.35rem .7rem !important;
+  margin:0 .15rem !important;
+  color:rgb(45,71,120) !important;
+  background:#fff !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover{
+  background:rgb(45,71,120) !important;
+  color:#fff !important;
+  border-color:rgb(45,71,120) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover{
+  background:rgb(45,71,120) !important;
+  color:#fff !important;
+  border-color:rgb(45,71,120) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{
+  color:#b9bdc7 !important;
+  background:#f6f7fb !important;
+}
+table.dataTable thead th{
+  border-bottom:2px solid #e5e7eb !important;
+  color:#737b90 !important;
+  font-weight:600 !important;
+  padding:.65rem .8rem !important;
+  background:#fff !important;
+}
+table.dataTable tbody td{
+  border-bottom:1px solid #f1f3f7 !important;
+  padding:.75rem .8rem !important;
+  color:#333;
+  vertical-align:middle;
+}
+table.dataTable tbody tr:hover td{ background:#f6f7fb !important; }
+table.dataTable.no-footer{ border-bottom:none !important; }
+
+/* Mensajes vacíos */
+.table-message{
+  text-align:center;
+  color:#737b90;
+  padding:1.25rem !important;
+  font-style:italic;
+}
+
+/* -------- Botones de acción dentro de tabla ----------------- */
+.btn-row{
+  display:inline-flex; align-items:center; gap:.35rem;
+  padding:.4rem .7rem;
+  border-radius:.375rem;
+  font:600 .78rem/1 "Open Sans",sans-serif;
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:all .15s;
+}
+.btn-row + .btn-row{ margin-left:.35rem }
+.btn-row.warning{ background:#f08a5d; color:#fff }
+.btn-row.warning:hover{ background:#d87245 }
+.btn-row.danger { background:#a5230c; color:#fff }
+.btn-row.danger:hover { background:#7c1a09 }
+.btn-row.info   { background:rgb(100,140,188); color:#fff }
+.btn-row.info:hover   { background:#5579a3 }
+.btn-row.primary{ background:rgb(45,71,120); color:#fff }
+.btn-row.primary:hover{ background:rgb(30,48,82) }
+
+.btn-group{ display:inline-flex; gap:.35rem; flex-wrap:wrap; justify-content:center }
+
+/* -------- Estado pill --------------------------------------- */
+.pill{
+  display:inline-block;
+  padding:.18rem .55rem;
+  border-radius:9999px;
+  font:600 .72rem/1.4 "Open Sans",sans-serif;
+}
+.pill-on { background:#dcfce7; color:#15803d }
+.pill-off{ background:#fee2e2; color:#a5230c }
+
+/* -------- Sidebar (helper para modo móvil) ------------------ */
+@media (max-width:1023px){
+  body.sidebar-open{ overflow:hidden }
+}
