@@ -128,10 +128,6 @@ app.use('/usuarios', usuariosRouter);
 const insertProductoWithStockRouter = require('./Server/Routes/insert_producto_with_stock.js');
 app.use('/productos', insertProductoWithStockRouter);
 
-// Gestión de imágenes de productos
-const imagenesRouter = require('./Server/Routes/imagenesRouter.js');
-app.use('/imagenes', imagenesRouter);
-
 /**
  * HEALTHCHECK (para orquestadores/monitoreo)
  * - 200 { ok: true,  status: 'up' } si el proceso está vivo y DB conectada
