@@ -1,10 +1,18 @@
 // /admin-resources/scripts/panel-adm-editarProducto.js
 import { productosAPI } from "/admin-resources/scripts/api/productosManager.js";
-import { imagenesAPI } from "/admin-resources/scripts/api/imagesManager.js";
 import { categoriasAPI } from "/admin-resources/scripts/api/categoriasManager.js";
 import { unidadesAPI } from "/admin-resources/scripts/api/unidadesManager.js";
 import { sizesAPI } from "/admin-resources/scripts/api/sizesManager.js";
 import { nuevoProductoAPI } from "/admin-resources/scripts/api/nuevoProductoManager.js";
+
+// Stub local: la gestión de imágenes aún no está implementada en el backend.
+// Se mantiene la API en el código para no romper el flujo, pero todas las
+// llamadas son no-ops y devuelven valores vacíos.
+const imagenesAPI = {
+  async getAll() { return []; },
+  async getByProductId(_id) { return null; },
+  async insert(_payload) { return { success: true, stub: true }; }
+};
 
 // DOM Elements
 const form = document.getElementById('editarProductoForm');
@@ -89,9 +97,17 @@ async function loadDropdowns() {
 }
 
 async function loadProductData(id) {
-    // Como getById devuelve un array en tu sistema actual, tomamos el [0]
+    // El endpoint /productos/por_id/:id responde:
+    //   { success: true, message: "...", data: <objeto producto> }
+    // Soportamos también respuestas planas u objetos en array por robustez.
     const resp = await productosAPI.getById(id);
-    const data = Array.isArray(resp) ? resp[0] : resp.data?.[0] || resp;
+
+    if (resp && resp.success === false) {
+        throw new Error(resp.message || "Producto no encontrado");
+    }
+
+    let data = resp?.data ?? resp;
+    if (Array.isArray(data)) data = data[0];
 
     if (!data) throw new Error("Producto no encontrado");
 
@@ -192,8 +208,8 @@ function setupEvents() {
 
 function showPreview(src) {
     els.imgPreview.src = src;
-    els.imgPreview.classList.remove('d-none');
-    els.uploadPlaceholder.classList.add('d-none');
+    els.imgPreview.classList.remove('hidden');
+    els.uploadPlaceholder.classList.add('hidden');
 }
 
 // --- Lógica de Guardado ---
