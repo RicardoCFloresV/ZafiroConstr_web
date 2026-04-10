@@ -42,14 +42,13 @@ function toArrayData(resp) {
 // Normalización según el nivel
 function normalizeItem(row, nivel) {
   if (!row || typeof row !== "object") return null;
-  
-  let id, nombre, descripcion;
-  
+
+  let id, nombre;
+
   switch (nivel) {
     case "principal":
       id = row.categoria_id ?? row.id;
       nombre = row.nombre ?? row.Nombre;
-      descripcion = row.descripcion ?? row.Descripcion;
       break;
     case "secundaria":
       id = row.categoria_secundaria_id ?? row.id;
@@ -62,19 +61,13 @@ function normalizeItem(row, nivel) {
     default:
       return null;
   }
-  
+
   if (id == null || nombre == null) return null;
-  
-  const item = {
+
+  return {
     id: Number(id),
     nombre: String(nombre)
   };
-  
-  if (descripcion !== undefined) {
-    item.descripcion = String(descripcion);
-  }
-  
-  return item;
 }
 
 function mapItems(listish, nivel) { 
@@ -155,8 +148,6 @@ const modalTit  = document.getElementById("modalTitle");
 const formEl    = document.getElementById("editForm");
 const hidId     = document.getElementById("hidId");
 const nombreInput = document.getElementById("nombre");
-const descripcionTextarea = document.getElementById("descripcion");
-const grupoDescripcion = document.getElementById("grupoDescripcion");
 const btnClose  = document.getElementById("closeModalBtn");
 const btnCancel = document.getElementById("cancelModalBtn");
 const saveBtn   = document.getElementById("saveBtn");
@@ -181,10 +172,9 @@ let deleteTarget = null;
 function openModal(mode = "create", data = null) {
   currentMode = mode;
   const nivel = currentNivel;
-  const esPrincipal = nivel === "principal";
-  
-  modalTit.textContent = mode === "create" 
-    ? `Nueva ${getNivelNombre(nivel)}` 
+
+  modalTit.textContent = mode === "create"
+    ? `Nueva ${getNivelNombre(nivel)}`
     : `Modificar ${getNivelNombre(nivel)}`;
 
   if (mode === "create") {
@@ -193,13 +183,7 @@ function openModal(mode = "create", data = null) {
   } else if (data) {
     hidId.value = data.id ?? "";
     nombreInput.value = data.nombre || "";
-    if (esPrincipal) {
-      descripcionTextarea.value = data.descripcion || "";
-    }
   }
-
-  // Mostrar/ocultar descripción solo para categorías principales
-  grupoDescripcion.style.display = esPrincipal ? "block" : "none";
 
   modalEl.classList.add("show");
   modalEl.setAttribute("aria-hidden", "false");
@@ -258,11 +242,7 @@ function getColumnas(nivel) {
     { data: "id", title: "ID" },
     { data: "nombre", title: "Nombre" }
   ];
-  
-  if (nivel === "principal") {
-    baseColumns.push({ data: "descripcion", title: "Descripción" });
-  }
-  
+
   baseColumns.push({
     data: null,
     title: "Acciones",
@@ -282,16 +262,10 @@ function getColumnas(nivel) {
 }
 
 function getColumnasPorId(nivel) {
-  const baseColumns = [
+  return [
     { data: "id", title: "ID" },
     { data: "nombre", title: "Nombre" }
   ];
-  
-  if (nivel === "principal") {
-    baseColumns.push({ data: "descripcion", title: "Descripción" });
-  }
-  
-  return baseColumns;
 }
 
 function actualizarTheads() {
@@ -419,22 +393,17 @@ btnConfirmDel?.addEventListener("click", async () => {
 /* =========================
    Validación
    ========================= */
-function validateItem({ id, nombre, descripcion }, mode) {
+function validateItem({ id, nombre }, mode) {
   if (mode === "edit") {
     if (!Number.isInteger(Number(id))) throw new Error("ID inválido");
   }
-  
+
   if (!nombre || nombre.trim().length === 0) throw new Error("El nombre es obligatorio");
   if (nombre.length > 100) throw new Error("El nombre no puede tener más de 100 caracteres");
-  
-  if (currentNivel === "principal") {
-    if (descripcion && descripcion.length > 255) throw new Error("La descripción no puede tener más de 255 caracteres");
-  }
-  
-  return { 
-    id: id ? Number(id) : undefined, 
-    nombre: nombre.trim(),
-    descripcion: descripcion ? descripcion.trim() : undefined
+
+  return {
+    id: id ? Number(id) : undefined,
+    nombre: nombre.trim()
   };
 }
 
@@ -446,8 +415,7 @@ formEl?.addEventListener("submit", async (e) => {
   try {
     const payload = {
       id: hidId.value ? Number(hidId.value) : undefined,
-      nombre: nombreInput.value,
-      descripcion: currentNivel === "principal" ? descripcionTextarea.value : undefined
+      nombre: nombreInput.value
     };
 
     if (currentMode === "edit" && payload.id) {

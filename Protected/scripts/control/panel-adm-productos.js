@@ -174,8 +174,8 @@ const columnsGeneral = [
   { data: "id", title: "ID" },
   { data: "nombre", title: "Nombre" },
   { data: "descripcion", title: "Descripción" },
-  { 
-    data: "precio", 
+  {
+    data: "precio",
     title: "Precio",
     render: function(data) {
       return `$${Number(data).toFixed(2)}`;
@@ -183,12 +183,27 @@ const columnsGeneral = [
   },
   { data: "categoria_principal_nombre", title: "Categoría" },
   { data: "brand_nombre", title: "Marca" },
-  { 
-    data: "estado", 
+  {
+    data: "estado",
     title: "Estado",
     render: function(data) {
-      return data === 1 ? "Activo" : "Inactivo";
+      const on = data === 1;
+      return `<span class="pill ${on ? 'pill-on' : 'pill-off'}">${on ? 'Activo' : 'Inactivo'}</span>`;
     }
+  },
+  {
+    data: null,
+    title: "Acciones",
+    orderable: false,
+    render: (row) =>
+      `<div class="btn-group">
+         <a class="btn-row warning" href="/admin-resources/pages/panels/editarProducto.html?id=${row.id}" title="Editar">
+           <i class="fa-solid fa-pen-to-square"></i> Editar
+         </a>
+         <button class="btn-row danger js-eliminar" data-id="${row.id}" data-nombre="${row.nombre}" title="Eliminar">
+           <i class="fa-solid fa-trash-can"></i> Eliminar
+         </button>
+       </div>`
   }
 ];
 
@@ -258,6 +273,16 @@ async function cargarTabla(activos = false) {
     tablaProductos = renderDataTable("#tablaProductos", [], columnsGeneral);
   }
 }
+
+/* =========================
+   Delegación: botón Eliminar de la tabla
+   ========================= */
+$(document).on("click", "#tablaProductos tbody .js-eliminar", function () {
+  const id = Number(this.dataset.id);
+  const nombre = String(this.dataset.nombre || "");
+  if (!id) return;
+  openDeleteModal({ id, nombre });
+});
 
 /* =========================
    Confirmar eliminación

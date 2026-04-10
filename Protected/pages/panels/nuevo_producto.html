@@ -3,225 +3,289 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Panel de Administración - Nuevo Producto</title>
+  <title>Zafiro Home — Nuevo Producto</title>
 
-  <!-- Iconos y fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@700&display=swap" rel="stylesheet" />
 
-  <!-- Estilos propios -->
-  <link rel="stylesheet" href="/admin-resources/css/admin.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(45, 71, 120)', 'primary-dark': 'rgb(30, 48, 82)',
+            secondary: 'rgb(100, 140, 188)', accent: '#f08a5d', 'accent-dark': '#d87245',
+            danger: '#a5230c', success: '#16a34a',
+            bg: '#f6f7fb', card: '#ffffff', textMain: '#333333', textMuted: '#737b90',
+          },
+          fontFamily: { body: ['Open Sans', 'sans-serif'], heading: ['Poppins', 'sans-serif'] },
+          boxShadow: {
+            'custom': '0 4px 12px rgba(45, 71, 120, 0.35)',
+            'custom-hover': '0 10px 20px rgba(45, 71, 120, 0.1)',
+          }
+        }
+      }
+    }
+  </script>
 
-  <!-- Toast styles livianos -->
-  <style>
-    #toastContainer { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 2000; }
-    .toast { min-width: 260px; max-width: 420px; padding: 12px 14px; border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.12);
-             font-family: "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.35;
-             display: flex; align-items: center; gap: 8px; animation: slidein .2s ease-out; }
-    .toast i { opacity: .9; }
-    .toast-success { background: #e7f6ec; color: #145a32; }
-    .toast-error   { background: #fdecea; color: #7a2e2e; }
-    .toast-info    { background: #eef2ff; color: #1f3a8a; }
-    @keyframes slidein { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  </style>
+  <link rel="stylesheet" href="/admin-resources/css/dashboards.css" />
 </head>
-<body class="page-body">
-  <div class="top-banner">Panel de Administración - Nuevo Producto</div>
+<body class="font-body bg-bg text-textMain overflow-x-hidden">
 
-  <nav class="navbar">
-    <div class="navbarcontainer">
-      <a class="navbar-store-title" href="#">
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80" alt="Zafiro Home" height="40" class="navbar-logo me-2">
-        <span>Zafiro Home</span>
-      </a>
-      <div>
-        <a class="btn btn-ghost me-2" href="/admin-resources/pages/admin.html">Panel general</a>
-        <a class="btn" href="/admin-resources/pages/productos.html">Volver a productos</a>
+  <div class="flex min-h-screen w-full relative">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[990] hidden lg:hidden"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[1000] w-[260px] bg-primary text-white flex flex-col transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0">
+      <div class="h-[70px] flex items-center px-6 gap-4 bg-primary-dark shrink-0">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80" alt="Logo" class="w-10 h-10 rounded-full object-cover">
+        <span class="font-heading font-bold text-lg">Zafiro Home</span>
+        <button id="sidebar-close" class="ml-auto lg:hidden text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
       </div>
-    </div>
-  </nav>
 
-  <main class="main-content">
-    <section class="card scroll-reveal" id="admin-header">
-      <h1 class="admin-title">Nuevo Producto</h1>
-      <p class="admin-subtitle">Complete el formulario para agregar un nuevo producto al inventario.</p>
-    </section>
+      <div class="block lg:hidden p-6 bg-black/15 border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover">
+          <div>
+            <div id="sidebar-username" class="font-bold text-sm text-white">Cargando…</div>
+            <div id="sidebar-role" class="text-xs text-white/60">Cargando…</div>
+          </div>
+        </div>
+      </div>
 
-    <!-- Formulario de creación -->
-    <section class="card p-4 mb-5 shadow-sm scroll-reveal">
-      <form id="productoForm" novalidate>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="nombre" class="form-label">Nombre *</label>
-              <input type="text" id="nombre" class="form-control" maxlength="100" required />
-              <small class="text-muted">2-100 caracteres</small>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="precio" class="form-label">Precio *</label>
-              <input type="number" id="precio" class="form-control" step="0.01" min="0" required />
-            </div>
-          </div>
-        </div>
-        
-        <div class="mb-3">
-          <label for="descripcion" class="form-label">Descripción</label>
-          <textarea id="descripcion" class="form-control" maxlength="255" rows="3"></textarea>
-          <small class="text-muted">Máximo 255 caracteres</small>
-        </div>
-        
-        <div class="row">
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="categoria_principal_id" class="form-label">Categoría Principal *</label>
-              <select id="categoria_principal_id" class="form-control" required>
-                <option value="">Seleccionar...</option>
-                <!-- Se llenará dinámicamente -->
-              </select>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="categoria_secundaria_id" class="form-label">Categoría Secundaria</label>
-              <select id="categoria_secundaria_id" class="form-control">
-                <option value="">Seleccionar...</option>
-                <!-- Se llenará dinámicamente -->
-              </select>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="subcategoria_id" class="form-label">Subcategoría</label>
-              <select id="subcategoria_id" class="form-control">
-                <option value="">Seleccionar...</option>
-                <!-- Se llenará dinámicamente -->
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="unit_id" class="form-label">Unidad *</label>
-              <select id="unit_id" class="form-control" required>
-                <option value="">Seleccionar...</option>
-                <!-- Se llenará dinámicamente -->
-              </select>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="unit_value" class="form-label">Valor de Unidad *</label>
-              <input type="number" id="unit_value" class="form-control" step="0.01" min="1" required />
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="size_id" class="form-label">Tamaño *</label>
-              <select id="size_id" class="form-control" required>
-                <option value="">Seleccionar...</option>
-                <!-- Se llenará dinámicamente -->
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="size_value" class="form-label">Valor de Tamaño *</label>
-              <input type="text" id="size_value" class="form-control" maxlength="50" required />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="brand_id" class="form-label">Marca *</label>
-              <select id="brand_id" class="form-control" required>
-                <option value="">Seleccionar...</option>
-                <!-- Se llenará dinámicamente -->
-              </select>
-            </div>
-          </div>
-        </div>
+      <ul class="list-none py-4 flex-1 overflow-y-auto">
+        <li><a href="/admin-resources/pages/admin.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a></li>
+        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Inventario</li>
+        <li><a href="/admin-resources/pages/panels/productos.html" class="flex items-center px-6 py-3.5 text-white bg-white/10 border-l-4 border-accent transition-colors gap-4"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Productos</a></li>
+        <li><a href="/admin-resources/pages/panels/categorias.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-layer-group w-5 text-center"></i> Categorías</a></li>
+        <li><a href="/admin-resources/pages/panels/marcas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-tags w-5 text-center"></i> Marcas</a></li>
+        <li><a href="/admin-resources/pages/panels/cajas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-box w-5 text-center"></i> Cajas</a></li>
+        <li><a href="/admin-resources/pages/panels/unidadesTamano.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-ruler w-5 text-center"></i> Unidades de Tamaño</a></li>
+        <li><a href="/admin-resources/pages/panels/unidadesVolumen.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-flask w-5 text-center"></i> Unidades de Volumen</a></li>
+        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Administración</li>
+        <li><a href="/admin-resources/pages/panels/usuarios.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-users w-5 text-center"></i> Usuarios</a></li>
+      </ul>
+    </aside>
 
-        <!-- Caja (por componentes) -->
-        <div class="row">
-          <div class="col-md-8">
-            <div class="mb-3">
-              <label class="form-label">Caja (por etiqueta) *</label>
-              <div class="d-flex gap-2 align-items-end flex-wrap">
-                <div>
-                  <label class="form-label mb-1">Letra</label>
-                  <div class="d-flex gap-2">
-                    <label for="caja_letra1">Selecciona la Primera letra</label>
-                    <select id="caja_letra1" class="form-control" required>
-                      <option value="">A…Z</option>
-                    </select>
-                    <label for="caja_letra2">Selecciona la Segunda letra</label>
-                    <select id="caja_letra2" class="form-control">
-                      <option value="">A…Z</option>
-                    </select>
-                  </div>
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 lg:ml-[260px]">
+
+      <header class="h-[70px] bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm sticky top-0 z-[900]">
+        <button id="menu-toggle" class="lg:hidden text-primary text-2xl p-2 focus:outline-none" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+        <div class="hidden sm:flex items-center gap-6 ml-auto">
+          <div class="flex items-center gap-4">
+            <a href="/admin-resources/pages/panels/productos.html" class="text-primary font-semibold flex items-center gap-2 hover:text-accent transition-colors"><i class="fa-solid fa-arrow-left"></i> Productos</a>
+            <img id="header-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover shadow-sm">
+            <div class="flex flex-col">
+              <span id="header-username" class="font-bold text-sm leading-tight text-textMain">Cargando…</span>
+              <span id="header-role" class="text-xs text-textMuted">Cargando…</span>
+            </div>
+          </div>
+          <button id="logout-btn" class="bg-danger text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-red-800 transition-colors flex items-center gap-2 shadow-sm"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+        <button id="logout-btn-mobile" class="sm:hidden bg-danger text-white px-3 py-1.5 rounded-md font-semibold text-xs hover:bg-red-800 transition-colors ml-auto" aria-label="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </header>
+
+      <main class="p-4 sm:p-8 flex-1">
+
+        <section id="admin-header" class="bg-primary text-white rounded-xl p-6 sm:p-8 shadow-custom mb-6">
+          <h1 class="font-heading text-2xl sm:text-3xl font-bold mb-2">Nuevo Producto</h1>
+          <p class="text-blue-200 text-sm sm:text-base">Complete el formulario para agregar un nuevo producto al inventario.</p>
+        </section>
+
+        <section class="bg-card rounded-xl p-5 sm:p-8 shadow-custom mb-6">
+          <form id="productoForm" novalidate class="flex flex-col gap-6">
+
+            <!-- Datos básicos -->
+            <div>
+              <h2 class="font-heading text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-info"></i> Datos básicos
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-2">
+                  <label for="nombre" class="font-semibold text-textMain text-sm">Nombre <span class="text-danger">*</span></label>
+                  <input type="text" id="nombre" maxlength="100" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"
+                    placeholder="Ej. Adaptador PVC 50mm">
+                  <small class="text-textMuted text-xs">2-100 caracteres.</small>
                 </div>
-                <div>
-                  <label class="form-label mb-1">Cara</label>
-                  <label for="caja_cara">Selecciona la posicion de la caja</label>
-                  <select id="caja_cara" class="form-control" required>
+
+                <div class="flex flex-col gap-2">
+                  <label for="precio" class="font-semibold text-textMain text-sm">Precio <span class="text-danger">*</span></label>
+                  <input type="number" id="precio" step="0.01" min="0" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"
+                    placeholder="0.00">
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2 mt-4">
+                <label for="descripcion" class="font-semibold text-textMain text-sm">Descripción</label>
+                <textarea id="descripcion" maxlength="255" rows="3"
+                  class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white resize-y"
+                  placeholder="Detalles técnicos, uso, etc."></textarea>
+                <small class="text-textMuted text-xs">Máximo 255 caracteres.</small>
+              </div>
+            </div>
+
+            <!-- Categorización -->
+            <div class="pt-4 border-t border-gray-100">
+              <h2 class="font-heading text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> Categorización
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-2">
+                  <label for="categoria_principal_id" class="font-semibold text-textMain text-sm">Categoría Principal <span class="text-danger">*</span></label>
+                  <select id="categoria_principal_id" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">Seleccionar...</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="categoria_secundaria_id" class="font-semibold text-textMain text-sm">Categoría Secundaria</label>
+                  <select id="categoria_secundaria_id"
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">Seleccionar...</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="subcategoria_id" class="font-semibold text-textMain text-sm">Subcategoría</label>
+                  <select id="subcategoria_id"
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">Seleccionar...</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Especificaciones -->
+            <div class="pt-4 border-t border-gray-100">
+              <h2 class="font-heading text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-ruler-combined"></i> Especificaciones
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-2">
+                  <label for="unit_id" class="font-semibold text-textMain text-sm">Unidad <span class="text-danger">*</span></label>
+                  <select id="unit_id" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">Seleccionar...</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="unit_value" class="font-semibold text-textMain text-sm">Valor de Unidad <span class="text-danger">*</span></label>
+                  <input type="number" id="unit_value" step="0.01" min="1" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="size_id" class="font-semibold text-textMain text-sm">Tamaño <span class="text-danger">*</span></label>
+                  <select id="size_id" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">Seleccionar...</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="flex flex-col gap-2">
+                  <label for="size_value" class="font-semibold text-textMain text-sm">Valor de Tamaño <span class="text-danger">*</span></label>
+                  <input type="text" id="size_value" maxlength="50" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"
+                    placeholder="Ej. XL, 40mm">
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="brand_id" class="font-semibold text-textMain text-sm">Marca <span class="text-danger">*</span></label>
+                  <select id="brand_id" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">Seleccionar...</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caja + stock -->
+            <div class="pt-4 border-t border-gray-100">
+              <h2 class="font-heading text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-box"></i> Ubicación en caja & stock
+              </h2>
+
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-2">
+                  <label for="caja_letra1" class="font-semibold text-textMain text-sm">Primera letra <span class="text-danger">*</span></label>
+                  <select id="caja_letra1" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">A…Z</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="caja_letra2" class="font-semibold text-textMain text-sm">Segunda letra</label>
+                  <select id="caja_letra2"
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                    <option value="">A…Z</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="caja_cara" class="font-semibold text-textMain text-sm">Cara <span class="text-danger">*</span></label>
+                  <select id="caja_cara" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
                     <option value="">Seleccionar…</option>
                     <option value="1">FRENTE (1)</option>
                     <option value="2">ATRÁS (2)</option>
                   </select>
                 </div>
-                <div>
-                  <label class="form-label mb-1">Nivel</label>
-                  <label for="caja_nivel">Selecciona el nivel de la caja</label>
-                  <select id="caja_nivel" class="form-control" required>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-end">
+                <div class="flex flex-col gap-2">
+                  <label for="caja_nivel" class="font-semibold text-textMain text-sm">Nivel <span class="text-danger">*</span></label>
+                  <select id="caja_nivel" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
                     <option value="">Seleccionar…</option>
                     <option value="1">ARRIBA (1)</option>
                     <option value="2">ABAJO (2)</option>
                   </select>
                 </div>
-
-                <button type="button" id="btnResolverCaja" class="btn btn-primary">
-                  <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar caja
-                </button>
+                <div class="flex flex-col gap-2">
+                  <button type="button" id="btnResolverCaja"
+                    class="bg-secondary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-[#5579a3] transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-magnifying-glass"></i> Buscar caja
+                  </button>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="stock_inicial" class="font-semibold text-textMain text-sm">Stock inicial <span class="text-danger">*</span></label>
+                  <input type="number" id="stock_inicial" min="0" step="1" required
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                </div>
               </div>
 
               <input type="hidden" id="caja_id" />
-              <small id="caja_preview" class="text-muted d-block mt-1">Sin caja seleccionada.</small>
+              <small id="caja_preview" class="text-textMuted text-xs block mt-2">Sin caja seleccionada.</small>
             </div>
-          </div>
 
-          <div class="col-md-4">
-            <div class="mb-3">
-              <label for="stock_inicial" class="form-label">Stock inicial *</label>
-              <input type="number" id="stock_inicial" class="form-control" min="0" step="1" required />
+            <!-- Acciones -->
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+              <a href="/admin-resources/pages/panels/productos.html"
+                class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors text-center w-full sm:w-auto">
+                Cancelar
+              </a>
+              <button type="submit" id="saveProductoBtn"
+                class="px-5 py-2.5 rounded-md font-semibold bg-primary text-white hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+                <i class="fa-solid fa-plus"></i> Crear producto
+              </button>
             </div>
-          </div>
-        </div>
-        
-        <div class="form-actions mt-4">
-          <a href="/admin-resources/pages/productos.html" class="btn btn-ghost me-2">Cancelar</a>
-          <button type="submit" class="btn btn-primary" id="saveProductoBtn">
-            <i class="fa-solid fa-plus me-1"></i> Crear Producto
-          </button>
-        </div>
-      </form>
-    </section>
-  </main>
+          </form>
+        </section>
 
-  <footer>
-    <p>© 2025 Zafiro Home. Todos los derechos reservados.</p>
-  </footer>
+      </main>
+    </div>
+  </div>
 
-  <!-- Toast container -->
+  <!-- Toasts -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Sesión + sidebar móvil + logout -->
+  <script src="/admin-resources/scripts/sessionManager.js"></script>
 
   <!-- API y Control del panel -->
   <script type="module" src="/admin-resources/scripts/api/nuevoProductoManager.js"></script>
