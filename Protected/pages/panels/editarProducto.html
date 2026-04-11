@@ -226,28 +226,42 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div class="md:col-span-2 flex flex-col gap-2">
-                  <label class="font-semibold text-textMain text-sm">Ubicación en Caja (Opcional)</label>
-                  <div class="flex gap-2">
-                    <input type="text" id="buscarCajaInput" disabled title="Edición de caja en desarrollo"
-                      class="flex-1 p-2.5 border border-gray-300 rounded-md bg-gray-100 text-textMuted"
-                      placeholder="Buscar por letra, nivel...">
-                    <button type="button" disabled
-                      class="px-4 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 bg-gray-100 cursor-not-allowed flex items-center gap-2">
-                      <i class="fa-solid fa-magnifying-glass"></i> Buscar
-                    </button>
+              <!-- Inventario actual del producto -->
+              <div class="mt-4 rounded-xl border border-gray-200 bg-bg p-4 sm:p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                  <div>
+                    <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Inventario actual</div>
+                    <h3 class="font-heading text-lg font-bold text-primary m-0">Stock por caja</h3>
                   </div>
-                  <input type="hidden" id="caja_id" />
-                  <small class="text-textMuted text-xs">Para cambiar la caja, utilice el módulo de inventario (próximamente).</small>
+                  <a id="lnkGestionarStock" href="/admin-resources/pages/panels/stock.html"
+                     class="bg-primary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-warehouse"></i> Gestionar stock de este producto
+                  </a>
                 </div>
 
-                <div class="flex flex-col gap-2">
-                  <label for="stock_total" class="font-semibold text-textMain text-sm">Stock Total</label>
-                  <input type="number" id="stock_total" readonly title="El stock se gestiona desde inventario"
-                    class="w-full p-2.5 border border-gray-300 rounded-md bg-gray-100 text-textMuted">
-                  <small class="text-textMuted text-xs">Solo lectura.</small>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                  <div class="rounded-lg bg-white border border-gray-200 p-3">
+                    <div class="text-[11px] uppercase tracking-wider text-textMuted font-bold">Stock total</div>
+                    <div id="stockTotalDisplay" class="text-2xl font-heading font-bold text-primary mt-1">0</div>
+                  </div>
+                  <div class="rounded-lg bg-white border border-gray-200 p-3">
+                    <div class="text-[11px] uppercase tracking-wider text-textMuted font-bold">Cajas asignadas</div>
+                    <div id="stockCajasDisplay" class="text-2xl font-heading font-bold text-primary mt-1">0</div>
+                  </div>
+                  <div class="rounded-lg bg-white border border-gray-200 p-3">
+                    <div class="text-[11px] uppercase tracking-wider text-textMuted font-bold">Detalles</div>
+                    <div id="stockDetallesDisplay" class="text-2xl font-heading font-bold text-primary mt-1">0</div>
+                  </div>
                 </div>
+
+                <div id="stockBoxesList" class="flex flex-wrap gap-2">
+                  <span class="text-textMuted text-sm italic">Cargando…</span>
+                </div>
+
+                <!-- Inputs ocultos preservados para compatibilidad con el script -->
+                <input type="hidden" id="caja_id" />
+                <input type="hidden" id="stock_total" />
+                <input type="hidden" id="buscarCajaInput" />
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import { categoriasAPI } from "/admin-resources/scripts/api/categoriasManager.js
 import { unidadesAPI } from "/admin-resources/scripts/api/unidadesManager.js";
 import { sizesAPI } from "/admin-resources/scripts/api/sizesManager.js";
 import { nuevoProductoAPI } from "/admin-resources/scripts/api/nuevoProductoManager.js";
+import { stockAPI } from "/admin-resources/scripts/api/stockManager.js";
 
 // Stub local: la gestión de imágenes aún no está implementada en el backend.
 // Se mantiene la API en el código para no romper el flujo, pero todas las
@@ -34,7 +35,14 @@ const els = {
     
     stock: document.getElementById('stock_total'),
     cajaId: document.getElementById('caja_id'),
-    
+
+    // Inventario actual
+    stockTotalDisplay: document.getElementById('stockTotalDisplay'),
+    stockCajasDisplay: document.getElementById('stockCajasDisplay'),
+    stockDetallesDisplay: document.getElementById('stockDetallesDisplay'),
+    stockBoxesList: document.getElementById('stockBoxesList'),
+    lnkGestionarStock: document.getElementById('lnkGestionarStock'),
+
     // Imagen
     imgInput: document.getElementById('imagenInput'),
     imgPreview: document.getElementById('imgPreview'),
@@ -158,6 +166,67 @@ async function loadProductData(id) {
                 showPreview(`/uploads/${prodImg.url || prodImg.path}`);
             }
         } catch(e) { console.log("No images found"); }
+    }
+
+    // Inventario actual (stock por caja) + link al panel de stock
+    const productoId = data.id || data.producto_id;
+    if (els.lnkGestionarStock && productoId) {
+        els.lnkGestionarStock.href = `/admin-resources/pages/panels/stock.html?id=${productoId}`;
+    }
+    await loadInventarioActual(productoId);
+}
+
+function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+}
+
+async function loadInventarioActual(productoId) {
+    if (!productoId || !els.stockBoxesList) return;
+    els.stockBoxesList.innerHTML = '<span class="text-textMuted text-sm italic">Cargando…</span>';
+
+    try {
+        const resp = await stockAPI.getByProducto(productoId);
+        const data = (resp && typeof resp === "object" && "data" in resp) ? resp.data : resp;
+        const detalles = Array.isArray(data) ? data : (data ? [data] : []);
+
+        const total = detalles.reduce((acc, d) => acc + Number(d.stock || 0), 0);
+        const cajasUnicas = new Set(detalles.map(d => d.caja_id).filter(Boolean));
+
+        if (els.stockTotalDisplay) els.stockTotalDisplay.textContent = total;
+        if (els.stockCajasDisplay) els.stockCajasDisplay.textContent = cajasUnicas.size || detalles.length;
+        if (els.stockDetallesDisplay) els.stockDetallesDisplay.textContent = detalles.length;
+
+        // Mantener el input oculto sincronizado por compatibilidad
+        if (els.stock) els.stock.value = total;
+
+        if (!detalles.length) {
+            els.stockBoxesList.innerHTML =
+                '<span class="text-textMuted text-sm italic">Este producto aún no está asignado a ninguna caja.</span>';
+            return;
+        }
+
+        els.stockBoxesList.innerHTML = detalles.map(d => {
+            const cajaId = d.caja_id ?? "—";
+            const eti = d.etiqueta ? escapeHtml(d.etiqueta) : `Caja ${cajaId}`;
+            const stock = Number(d.stock || 0);
+            const stockCls = stock > 0 ? "bg-success" : "bg-gray-400";
+            return `
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20"
+                    title="Caja #${cajaId} · Detalle #${d.detalle_id}">
+                <i class="fa-solid fa-box"></i>
+                <span>${eti}</span>
+                <span class="ml-1 px-1.5 py-0.5 rounded ${stockCls} text-white">${stock}</span>
+              </span>`;
+        }).join("");
+    } catch (err) {
+        console.error("Error cargando inventario actual:", err);
+        els.stockBoxesList.innerHTML =
+            '<span class="text-danger text-sm">No se pudo cargar el inventario actual.</span>';
+        if (els.stockTotalDisplay) els.stockTotalDisplay.textContent = "—";
+        if (els.stockCajasDisplay) els.stockCajasDisplay.textContent = "—";
+        if (els.stockDetallesDisplay) els.stockDetallesDisplay.textContent = "—";
     }
 }
 
