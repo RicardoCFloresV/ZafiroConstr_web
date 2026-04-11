@@ -20,7 +20,7 @@ const nuevoProductoAPI = {
 
     // Métodos para obtener datos relacionados
     async getCategorias() {
-        const response = await fetch('/categorias/get_list', {
+        const response = await fetch('/categorias/get_all', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -31,7 +31,7 @@ const nuevoProductoAPI = {
     },
 
     async getCategoriasSecundarias() {
-        const response = await fetch('/categorias_secundarias/get_list', {
+        const response = await fetch('/categorias_secundarias/get_all', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -42,7 +42,7 @@ const nuevoProductoAPI = {
     },
 
     async getSubcategorias() {
-        const response = await fetch('/subcategorias/get_list', {
+        const response = await fetch('/subcategorias/get_all', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

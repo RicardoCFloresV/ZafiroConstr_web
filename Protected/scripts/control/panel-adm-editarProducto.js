@@ -276,31 +276,36 @@ async function saveProduct() {
 // --- Helpers ---
 
 async function loadSecundarias(catId) {
-    // Usamos nuevoProductoAPI que ya tiene la lógica de fetch all, 
-    // pero necesitamos filtrar por catId. 
-    // Si tu API soporta filtro por parametro mejor, sino filtramos en cliente.
-    const allSec = await nuevoProductoAPI.getCategoriasSecundarias(); 
-    // Asumiendo que devuelve array y tiene propiedad linkeada a catPri
-    // Si la API devuelve TODO, filtramos:
-    const filtered = Array.isArray(allSec) ? allSec.filter(s => s.categoria_principal_id == catId) : allSec;
-    
+    const resp = await nuevoProductoAPI.getCategoriasSecundarias();
+    const allSec = toArrayData(resp);
+    const filtered = allSec.filter(s => s.categoria_principal_id == catId);
+
     fillSelect(els.catSec, filtered, 'categoria_secundaria_id', 'nombre');
     els.catSec.disabled = false;
 }
 
 async function loadSubcategorias(secId) {
-    const allSub = await nuevoProductoAPI.getSubcategorias();
-    const filtered = Array.isArray(allSub) ? allSub.filter(s => s.categoria_secundaria_id == secId) : allSub;
-    
+    const resp = await nuevoProductoAPI.getSubcategorias();
+    const allSub = toArrayData(resp);
+    const filtered = allSub.filter(s => s.categoria_secundaria_id == secId);
+
     fillSelect(els.subCat, filtered, 'subcategoria_id', 'nombre');
     els.subCat.disabled = false;
 }
 
+function toArrayData(resp) {
+    const r = resp && typeof resp === "object" && "data" in resp ? resp.data : resp;
+    if (Array.isArray(r)) return r;
+    if (!r) return [];
+    return [r];
+}
+
 function fillSelect(select, data, valKey, textKey) {
     select.innerHTML = '<option value="">Seleccione...</option>';
-    if(!Array.isArray(data)) return;
-    
-    data.forEach(item => {
+    const arr = toArrayData(data);
+    if(!arr.length) return;
+
+    arr.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item[valKey];
         opt.textContent = item[textKey];
