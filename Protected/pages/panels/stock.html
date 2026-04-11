@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zafiro Home — Gestión de Stock</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(45, 71, 120)', 'primary-dark': 'rgb(30, 48, 82)',
+            secondary: 'rgb(100, 140, 188)', accent: '#f08a5d', 'accent-dark': '#d87245',
+            danger: '#a5230c', success: '#16a34a',
+            bg: '#f6f7fb', card: '#ffffff', textMain: '#333333', textMuted: '#737b90',
+          },
+          fontFamily: { body: ['Open Sans', 'sans-serif'], heading: ['Poppins', 'sans-serif'] },
+          boxShadow: {
+            'custom': '0 4px 12px rgba(45, 71, 120, 0.35)',
+            'custom-hover': '0 10px 20px rgba(45, 71, 120, 0.1)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="/admin-resources/css/dashboards.css" />
+</head>
+<body class="font-body bg-bg text-textMain overflow-x-hidden">
+
+  <div class="flex min-h-screen w-full relative">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[990] hidden lg:hidden"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[1000] w-[260px] bg-primary text-white flex flex-col transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0">
+      <div class="h-[70px] flex items-center px-6 gap-4 bg-primary-dark shrink-0">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80" alt="Logo" class="w-10 h-10 rounded-full object-cover">
+        <span class="font-heading font-bold text-lg">Zafiro Home</span>
+        <button id="sidebar-close" class="ml-auto lg:hidden text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="block lg:hidden p-6 bg-black/15 border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover">
+          <div>
+            <div id="sidebar-username" class="font-bold text-sm text-white">Cargando…</div>
+            <div id="sidebar-role" class="text-xs text-white/60">Cargando…</div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="list-none py-4 flex-1 overflow-y-auto">
+        <li><a href="/admin-resources/pages/admin.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a></li>
+        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Inventario</li>
+        <li><a href="/admin-resources/pages/panels/productos.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Productos</a></li>
+        <li><a href="/admin-resources/pages/panels/stock.html" class="flex items-center px-6 py-3.5 text-white bg-white/10 border-l-4 border-accent transition-colors gap-4"><i class="fa-solid fa-warehouse w-5 text-center"></i> Stock</a></li>
+        <li><a href="/admin-resources/pages/panels/categorias.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-layer-group w-5 text-center"></i> Categorías</a></li>
+        <li><a href="/admin-resources/pages/panels/marcas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-tags w-5 text-center"></i> Marcas</a></li>
+        <li><a href="/admin-resources/pages/panels/cajas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-box w-5 text-center"></i> Cajas</a></li>
+        <li><a href="/admin-resources/pages/panels/unidadesTamano.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-ruler w-5 text-center"></i> Unidades de Tamaño</a></li>
+        <li><a href="/admin-resources/pages/panels/unidadesVolumen.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-flask w-5 text-center"></i> Unidades de Volumen</a></li>
+        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Administración</li>
+        <li><a href="/admin-resources/pages/panels/usuarios.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-users w-5 text-center"></i> Usuarios</a></li>
+      </ul>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 lg:ml-[260px]">
+
+      <header class="h-[70px] bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm sticky top-0 z-[900]">
+        <button id="menu-toggle" class="lg:hidden text-primary text-2xl p-2 focus:outline-none" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+        <div class="hidden sm:flex items-center gap-6 ml-auto">
+          <div class="flex items-center gap-4">
+            <a href="/admin-resources/pages/admin.html" class="text-primary font-semibold flex items-center gap-2 hover:text-accent transition-colors"><i class="fa-solid fa-house"></i> Inicio</a>
+            <img id="header-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover shadow-sm">
+            <div class="flex flex-col">
+              <span id="header-username" class="font-bold text-sm leading-tight text-textMain">Cargando…</span>
+              <span id="header-role" class="text-xs text-textMuted">Cargando…</span>
+            </div>
+          </div>
+          <button id="logout-btn" class="bg-danger text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-red-800 transition-colors flex items-center gap-2 shadow-sm"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+        <button id="logout-btn-mobile" class="sm:hidden bg-danger text-white px-3 py-1.5 rounded-md font-semibold text-xs hover:bg-red-800 transition-colors ml-auto" aria-label="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </header>
+
+      <main class="p-4 sm:p-8 flex-1">
+
+        <section id="admin-header" class="bg-primary text-white rounded-xl p-6 sm:p-8 shadow-custom mb-6">
+          <h1 class="font-heading text-2xl sm:text-3xl font-bold mb-2">Gestión de Stock</h1>
+          <p class="text-blue-200 text-sm sm:text-base">Consulta y ajusta el stock disponible por caja para cada producto.</p>
+        </section>
+
+        <!-- Búsqueda de producto -->
+        <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
+          <h2 class="font-heading text-xl font-bold text-primary m-0 mb-5">Seleccionar producto</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_140px_auto] gap-3">
+            <input type="text" id="inputBuscar" placeholder="ID o Nombre del producto…"
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <select id="tipoBusqueda" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+              <option value="id">ID</option>
+              <option value="nombre">Nombre</option>
+            </select>
+            <button id="btnBuscar" class="bg-secondary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-[#5579a3] transition-colors flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-magnifying-glass"></i> Buscar
+            </button>
+          </div>
+
+          <!-- Resultados de búsqueda por nombre -->
+          <div id="resultadosBusqueda" class="mt-5 hidden">
+            <div class="overflow-x-auto w-full">
+              <table id="tablaBusqueda" class="display w-full text-left">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Nombre</th><th>Marca</th><th>Categoría</th><th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Producto seleccionado + acciones -->
+        <section id="productoSeleccionado" class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6 hidden">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+            <div class="min-w-0">
+              <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Producto</div>
+              <h2 class="font-heading text-xl font-bold text-primary m-0 truncate" id="prodNombre">—</h2>
+              <div class="text-sm text-textMuted">
+                ID: <span id="prodId" class="font-semibold text-textMain">—</span>
+                <span class="mx-2">·</span>
+                Marca: <span id="prodMarca" class="font-semibold text-textMain">—</span>
+                <span class="mx-2">·</span>
+                Categoría: <span id="prodCategoria" class="font-semibold text-textMain">—</span>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 sm:gap-3">
+              <button id="btnAddStock" class="bg-success text-white px-4 py-2.5 rounded-md font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-plus"></i> Agregar
+              </button>
+              <button id="btnRemoveStock" class="bg-danger text-white px-4 py-2.5 rounded-md font-semibold hover:bg-red-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-minus"></i> Retirar
+              </button>
+              <button id="btnSetStock" class="bg-secondary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-[#5579a3] transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-pen-to-square"></i> Ajustar
+              </button>
+              <button id="btnMoveStock" class="bg-primary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-right-left"></i> Mover
+              </button>
+              <button id="btnRefrescarStock" class="bg-primary-dark text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-sm" title="Refrescar stock">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Resumen total -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="rounded-lg border border-gray-200 p-4 bg-bg">
+              <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Stock total</div>
+              <div class="text-3xl font-heading font-bold text-primary mt-1" id="stockTotal">0</div>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-4 bg-bg">
+              <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Cajas con stock</div>
+              <div class="text-3xl font-heading font-bold text-primary mt-1" id="stockCajasCount">0</div>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-4 bg-bg">
+              <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Detalles</div>
+              <div class="text-3xl font-heading font-bold text-primary mt-1" id="stockDetallesCount">0</div>
+            </div>
+          </div>
+
+          <!-- Tabla de detalles por caja -->
+          <div class="overflow-x-auto w-full">
+            <table id="tablaStock" class="display w-full text-left">
+              <thead>
+                <tr>
+                  <th>Detalle</th><th>Caja</th><th>Etiqueta</th><th>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" class="table-message">Selecciona un producto para ver su stock.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================ MODAL: Agregar stock ============================ -->
+  <div class="modal" id="modalAddStock" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" data-close-modal="modalAddStock" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-success text-4xl mb-3"><i class="fa-solid fa-circle-plus"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-1">Agregar stock</h3>
+      <p class="text-textMuted text-sm mb-5">Suma unidades al producto en una caja existente o nueva.</p>
+
+      <form id="formAddStock" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="addCajaSelect">Caja</label>
+          <select id="addCajaSelect" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione una caja…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="addDelta">Cantidad a agregar</label>
+          <input type="number" id="addDelta" min="1" step="1" placeholder="Ej. 10"
+            class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button type="button" data-close-modal="modalAddStock" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-auto">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-success text-white hover:bg-green-700 transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus"></i> Agregar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================ MODAL: Retirar stock ============================ -->
+  <div class="modal" id="modalRemoveStock" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" data-close-modal="modalRemoveStock" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-danger text-4xl mb-3"><i class="fa-solid fa-circle-minus"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-1">Retirar stock</h3>
+      <p class="text-textMuted text-sm mb-5">Resta unidades del producto en una caja con stock.</p>
+
+      <form id="formRemoveStock" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="removeCajaSelect">Caja</label>
+          <select id="removeCajaSelect" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione una caja…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="removeDelta">Cantidad a retirar</label>
+          <input type="number" id="removeDelta" min="1" step="1" placeholder="Ej. 5"
+            class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button type="button" data-close-modal="modalRemoveStock" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-auto">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-danger text-white hover:bg-red-800 transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
+            <i class="fa-solid fa-minus"></i> Retirar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================ MODAL: Ajustar stock por detalle ============================ -->
+  <div class="modal" id="modalSetStock" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" data-close-modal="modalSetStock" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-secondary text-4xl mb-3"><i class="fa-solid fa-pen-to-square"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-1">Ajustar stock</h3>
+      <p class="text-textMuted text-sm mb-5">Fija el valor exacto de stock para un detalle (caja+producto).</p>
+
+      <form id="formSetStock" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="setDetalleSelect">Detalle</label>
+          <select id="setDetalleSelect" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione un detalle…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="setStockValue">Stock final</label>
+          <input type="number" id="setStockValue" min="0" step="1" placeholder="Ej. 25"
+            class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button type="button" data-close-modal="modalSetStock" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-auto">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-secondary text-white hover:bg-[#5579a3] transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================ MODAL: Mover stock ============================ -->
+  <div class="modal" id="modalMoveStock" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" data-close-modal="modalMoveStock" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-primary text-4xl mb-3"><i class="fa-solid fa-right-left"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-1">Mover stock entre cajas</h3>
+      <p class="text-textMuted text-sm mb-5">Transfiere unidades del producto desde una caja origen a una destino.</p>
+
+      <form id="formMoveStock" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="moveOrigenSelect">Caja origen</label>
+          <select id="moveOrigenSelect" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione una caja origen…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="moveDestinoSelect">Caja destino</label>
+          <select id="moveDestinoSelect" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione una caja destino…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="moveCantidad">Cantidad a mover</label>
+          <input type="number" id="moveCantidad" min="1" step="1" placeholder="Ej. 5"
+            class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button type="button" data-close-modal="modalMoveStock" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-auto">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-primary text-white hover:bg-primary-dark transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
+            <i class="fa-solid fa-right-left"></i> Mover
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- jQuery + DataTables -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+  <!-- Sesión + sidebar móvil + logout -->
+  <script src="/admin-resources/scripts/sessionManager.js"></script>
+
+  <!-- API y Control del panel -->
+  <script type="module" src="/admin-resources/scripts/api/stockManager.js"></script>
+  <script type="module" src="/admin-resources/scripts/api/productosManager.js"></script>
+  <script type="module" src="/admin-resources/scripts/api/cajasManager.js"></script>
+  <script type="module" src="/admin-resources/scripts/control/panel-adm-stock.js"></script>
+</body>
+</html>
