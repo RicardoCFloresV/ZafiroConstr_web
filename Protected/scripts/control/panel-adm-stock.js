@@ -82,6 +82,9 @@ const prodNombre = document.getElementById("prodNombre");
 const prodId = document.getElementById("prodId");
 const prodMarca = document.getElementById("prodMarca");
 const prodCategoria = document.getElementById("prodCategoria");
+const prodEstadoPill = document.getElementById("prodEstadoPill");
+const toggleEstado = document.getElementById("toggleEstado");
+const toggleEstadoLabel = document.getElementById("toggleEstadoLabel");
 
 const stockTotalEl = document.getElementById("stockTotal");
 const stockCajasCountEl = document.getElementById("stockCajasCount");
@@ -200,6 +203,14 @@ const columnsBusqueda = [
     title: "Cajas",
     orderable: false,
     render: (row) => renderCajasBadges(row.id)
+  },
+  {
+    data: "estado",
+    title: "Estado",
+    render: (d) => {
+      const on = Number(d) === 1;
+      return `<span class="pill ${on ? "pill-on" : "pill-off"}">${on ? "Activo" : "Inactivo"}</span>`;
+    }
   },
   {
     data: null,
@@ -436,7 +447,103 @@ function pintarProducto() {
   prodId.textContent = p.id ?? "—";
   prodMarca.textContent = p.brand_nombre || "—";
   prodCategoria.textContent = p.categoria_principal_nombre || "—";
+
+  const activo = Number(p.estado) === 1;
+
+  // Pill
+  if (prodEstadoPill) {
+    prodEstadoPill.classList.remove("hidden", "pill-on", "pill-off");
+    prodEstadoPill.classList.add(activo ? "pill-on" : "pill-off");
+    prodEstadoPill.textContent = activo ? "Activo" : "Inactivo";
+  }
+
+  // Toggle
+  if (toggleEstado) {
+    toggleEstado.checked = activo;
+  }
+  if (toggleEstadoLabel) {
+    toggleEstadoLabel.textContent = activo ? "Activo" : "Inactivo";
+    toggleEstadoLabel.classList.toggle("text-success", activo);
+    toggleEstadoLabel.classList.toggle("text-textMuted", !activo);
+  }
+
+  // Deshabilita botones de stock si el producto está inactivo
+  [btnAddStock, btnRemoveStock, btnSetStock, btnMoveStock].forEach(b => {
+    if (!b) return;
+    b.disabled = !activo;
+    b.classList.toggle("opacity-50", !activo);
+    b.classList.toggle("cursor-not-allowed", !activo);
+    b.title = activo ? "" : "Producto inactivo: activa el producto para gestionar su stock";
+  });
 }
+
+async function cambiarEstadoProducto(nuevoEstado) {
+  if (!currentProducto) return;
+  const p = currentProducto;
+
+  // Payload completo requerido por productos_update (todos los campos obligatorios)
+  const payload = {
+    producto_id: p.id,
+    nombre: p.nombre,
+    descripcion: p.descripcion ?? "",
+    precio: Number(p.precio || 0),
+    categoria_principal_id: p.categoria_principal_id,
+    categoria_secundaria_id: p._raw?.categoria_secundaria_id ?? null,
+    subcategoria_id: p._raw?.subcategoria_id ?? null,
+    unit_id: p.unit_id,
+    unit_value: Number(p.unit_value ?? p._raw?.unit_value ?? 0),
+    size_id: p.size_id,
+    size_value: String(p.size_value ?? p._raw?.size_value ?? ""),
+    brand_id: p.brand_id,
+    estado: nuevoEstado ? 1 : 0
+  };
+
+  // Validación mínima antes de enviar
+  const missing = ["nombre", "categoria_principal_id", "unit_id", "size_id", "brand_id"]
+    .filter(k => payload[k] == null || payload[k] === "");
+  if (missing.length) {
+    throw new Error(`Faltan datos del producto: ${missing.join(", ")}. Edítalo desde Productos.`);
+  }
+  if (!payload.size_value) {
+    throw new Error("El producto no tiene size_value. Edítalo desde Productos.");
+  }
+
+  assertOk(await productosAPI.update(payload));
+
+  // Actualizamos estado local
+  currentProducto.estado = payload.estado;
+  pintarProducto();
+}
+
+toggleEstado?.addEventListener("change", async () => {
+  if (!currentProducto) {
+    toggleEstado.checked = false;
+    return;
+  }
+  const nuevoEstado = toggleEstado.checked ? 1 : 0;
+  const prevEstado = Number(currentProducto.estado);
+
+  if (nuevoEstado === prevEstado) return;
+
+  // Disable durante la operación
+  toggleEstado.disabled = true;
+  try {
+    await cambiarEstadoProducto(nuevoEstado);
+    await loadCatalogo();
+    aplicarFiltros();
+    showToast(
+      nuevoEstado === 1 ? "Producto activado" : "Producto desactivado",
+      "success",
+      "fa-check-circle"
+    );
+  } catch (err) {
+    // Revertir toggle en fallo
+    toggleEstado.checked = prevEstado === 1;
+    showToast(friendlyError(err), "error", "fa-circle-exclamation");
+  } finally {
+    toggleEstado.disabled = false;
+  }
+});
 
 async function cargarStockProducto() {
   if (!currentProducto) return;
@@ -533,6 +640,10 @@ btnAddStock?.addEventListener("click", () => {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
     return;
   }
+  if (Number(currentProducto.estado) !== 1) {
+    showToast("El producto está inactivo. Actívalo antes de modificar su stock.", "error", "fa-circle-exclamation");
+    return;
+  }
   fillCajaSelect(document.getElementById("addCajaSelect"));
   document.getElementById("addDelta").value = "";
   openModal("modalAddStock");
@@ -561,6 +672,10 @@ document.getElementById("formAddStock")?.addEventListener("submit", async (e) =>
 btnRemoveStock?.addEventListener("click", () => {
   if (!currentProducto) {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
+    return;
+  }
+  if (Number(currentProducto.estado) !== 1) {
+    showToast("El producto está inactivo. Actívalo antes de modificar su stock.", "error", "fa-circle-exclamation");
     return;
   }
   const select = document.getElementById("removeCajaSelect");
@@ -600,6 +715,10 @@ btnSetStock?.addEventListener("click", () => {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
     return;
   }
+  if (Number(currentProducto.estado) !== 1) {
+    showToast("El producto está inactivo. Actívalo antes de modificar su stock.", "error", "fa-circle-exclamation");
+    return;
+  }
   if (!currentDetalles.length) {
     showToast("Este producto aún no tiene detalles en cajas.", "info", "fa-info-circle");
     return;
@@ -632,6 +751,10 @@ document.getElementById("formSetStock")?.addEventListener("submit", async (e) =>
 btnMoveStock?.addEventListener("click", () => {
   if (!currentProducto) {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
+    return;
+  }
+  if (Number(currentProducto.estado) !== 1) {
+    showToast("El producto está inactivo. Actívalo antes de modificar su stock.", "error", "fa-circle-exclamation");
     return;
   }
   const origenSelect = document.getElementById("moveOrigenSelect");
