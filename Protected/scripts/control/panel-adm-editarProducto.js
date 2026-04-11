@@ -413,21 +413,21 @@ async function saveProduct() {
 
 // --- Helpers ---
 
-async function loadSecundarias(catId) {
+async function loadSecundarias(_catId) {
+    // El SP categorias_secundarias_get_all no devuelve categoria_principal_id,
+    // así que cargamos todas las secundarias sin filtrar (cascada "abierta").
     const resp = await nuevoProductoAPI.getCategoriasSecundarias();
     const allSec = toArrayData(resp);
-    const filtered = allSec.filter(s => s.categoria_principal_id == catId);
-
-    fillSelect(els.catSec, filtered, 'categoria_secundaria_id', 'nombre');
+    fillSelect(els.catSec, allSec, 'categoria_secundaria_id', 'nombre');
     els.catSec.disabled = false;
 }
 
-async function loadSubcategorias(secId) {
+async function loadSubcategorias(_secId) {
+    // El SP subcategorias_get_all no devuelve categoria_secundaria_id,
+    // así que cargamos todas las subcategorías sin filtrar.
     const resp = await nuevoProductoAPI.getSubcategorias();
     const allSub = toArrayData(resp);
-    const filtered = allSub.filter(s => s.categoria_secundaria_id == secId);
-
-    fillSelect(els.subCat, filtered, 'subcategoria_id', 'nombre');
+    fillSelect(els.subCat, allSub, 'subcategoria_id', 'nombre');
     els.subCat.disabled = false;
 }
 

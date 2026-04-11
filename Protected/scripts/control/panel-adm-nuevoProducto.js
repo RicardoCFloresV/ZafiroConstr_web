@@ -92,48 +92,79 @@ let datosRelacionados = {
    Cargar datos relacionados
    ========================= */
 async function cargarDatosRelacionados() {
-  try {
-    const [
-      categoriasResp, 
-      categoriasSecundariasResp, 
-      subcategoriasResp, 
-      sizesResp, 
-      brandsResp
-    ] = await Promise.all([
-      nuevoProductoAPI.getCategorias(),
-      nuevoProductoAPI.getCategoriasSecundarias(),
-      nuevoProductoAPI.getSubcategorias(),
-      sizesAPI.getAll(),
-      nuevoProductoAPI.getBrands()
-    ]);
-    
-    // Cargar unidades desde su API específica
-    const unitsResp = await unidadesAPI.getAll();
-    
-    datosRelacionados.categorias = toArrayData(categoriasResp);
-    datosRelacionados.categoriasSecundarias = toArrayData(categoriasSecundariasResp);
-    datosRelacionados.subcategorias = toArrayData(subcategoriasResp);
-    datosRelacionados.units = toArrayData(unitsResp);
-    datosRelacionados.sizes = toArrayData(sizesResp);
-    datosRelacionados.brands = toArrayData(brandsResp);
-    
-    // Llenar selects del formulario
-    llenarSelect(categoriaPrincipalSelect, datosRelacionados.categorias, "categoria_id", "nombre");
-    llenarSelect(categoriaSecundariaSelect, datosRelacionados.categoriasSecundarias, "categoria_secundaria_id", "nombre");
-    llenarSelect(subcategoriaSelect, datosRelacionados.subcategorias, "subcategoria_id", "nombre");
-    llenarSelect(unitSelect, datosRelacionados.units, "unit_id", "nombre");
-    llenarSelect(sizeSelect, datosRelacionados.sizes, "size_id", "nombre");
-    llenarSelect(brandSelect, datosRelacionados.brands, "brand_id", "nombre");
-    
-    // Inicializar selector de caja
-    initPickerCaja();
-    
-    return true;
-  } catch (err) {
-    console.error("Error cargando datos relacionados:", err);
-    showToast("Error cargando datos relacionados", "error", "fa-circle-exclamation");
+  // Cada llamada es independiente: si una falla, las demás siguen cargando.
+  const tareas = [
+    {
+      nombre: "categorías",
+      fn: () => nuevoProductoAPI.getCategorias(),
+      ok: (data) => {
+        datosRelacionados.categorias = data;
+        llenarSelect(categoriaPrincipalSelect, data, "categoria_id", "nombre");
+      }
+    },
+    {
+      nombre: "categorías secundarias",
+      fn: () => nuevoProductoAPI.getCategoriasSecundarias(),
+      ok: (data) => {
+        datosRelacionados.categoriasSecundarias = data;
+        llenarSelect(categoriaSecundariaSelect, data, "categoria_secundaria_id", "nombre");
+      }
+    },
+    {
+      nombre: "subcategorías",
+      fn: () => nuevoProductoAPI.getSubcategorias(),
+      ok: (data) => {
+        datosRelacionados.subcategorias = data;
+        llenarSelect(subcategoriaSelect, data, "subcategoria_id", "nombre");
+      }
+    },
+    {
+      nombre: "unidades",
+      fn: () => unidadesAPI.getAll(),
+      ok: (data) => {
+        datosRelacionados.units = data;
+        llenarSelect(unitSelect, data, "unit_id", "nombre");
+      }
+    },
+    {
+      nombre: "tamaños",
+      fn: () => sizesAPI.getAll(),
+      ok: (data) => {
+        datosRelacionados.sizes = data;
+        llenarSelect(sizeSelect, data, "size_id", "nombre");
+      }
+    },
+    {
+      nombre: "marcas",
+      fn: () => nuevoProductoAPI.getBrands(),
+      ok: (data) => {
+        datosRelacionados.brands = data;
+        llenarSelect(brandSelect, data, "brand_id", "nombre");
+      }
+    }
+  ];
+
+  const fallos = [];
+  await Promise.all(tareas.map(async t => {
+    try {
+      const resp = await t.fn();
+      const arr = toArrayData(resp);
+      t.ok(arr);
+      console.log(`[nuevoProducto] ${t.nombre}: ${arr.length} ítems cargados`);
+    } catch (err) {
+      console.error(`[nuevoProducto] Error cargando ${t.nombre}:`, err);
+      fallos.push(t.nombre);
+    }
+  }));
+
+  // Inicializar selector de caja (no depende de APIs)
+  initPickerCaja();
+
+  if (fallos.length) {
+    showToast(`No se pudieron cargar: ${fallos.join(", ")}`, "error", "fa-circle-exclamation");
     return false;
   }
+  return true;
 }
 
 function initPickerCaja() {

@@ -99,7 +99,16 @@
         <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
             <h2 class="font-heading text-xl font-bold text-primary m-0">Búsqueda</h2>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Toggle: Todos / Solo activos -->
+              <div class="flex items-center gap-2 bg-bg border border-gray-200 rounded-md px-3 py-2">
+                <span class="text-xs font-semibold text-textMuted uppercase tracking-wider">Mostrar:</span>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <input type="checkbox" id="toggleSoloActivos" class="sr-only peer" checked>
+                  <div class="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-success transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:shadow after:transition-transform peer-checked:after:translate-x-5"></div>
+                  <span id="toggleSoloActivosLabel" class="ml-2 text-sm font-semibold text-success">Solo activos</span>
+                </label>
+              </div>
               <button id="btnLimpiarFiltros" class="bg-white text-textMuted border border-gray-300 px-4 py-2 rounded-md font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm">
                 <i class="fa-solid fa-broom"></i> Limpiar filtros
               </button>

@@ -74,6 +74,9 @@ const filterMarca = document.getElementById("filterMarca");
 const filterUnidad = document.getElementById("filterUnidad");
 const filterTamano = document.getElementById("filterTamano");
 
+const toggleSoloActivos = document.getElementById("toggleSoloActivos");
+const toggleSoloActivosLabel = document.getElementById("toggleSoloActivosLabel");
+
 const resultadosBusqueda = document.getElementById("resultadosBusqueda");
 const resultadosCount = document.getElementById("resultadosCount");
 
@@ -184,11 +187,32 @@ function renderCajasBadges(producto_id) {
   }).join("");
 }
 
+function renderCategoriaBadges(row) {
+  const niveles = [
+    { nombre: row.categoria_principal_nombre, tipo: "Principal", cls: "bg-primary/10 text-primary border-primary/20" },
+    { nombre: row.categoria_secundaria_nombre, tipo: "Secundaria", cls: "bg-secondary/10 text-secondary border-secondary/20" },
+    { nombre: row.subcategoria_nombre, tipo: "Sub", cls: "bg-accent/10 text-accent-dark border-accent/20" }
+  ].filter(n => n.nombre && n.nombre !== "—");
+
+  if (!niveles.length) return `<span class="text-textMuted text-xs italic">Sin categoría</span>`;
+
+  return niveles.map(n =>
+    `<span class="inline-flex items-center gap-1 px-2 py-0.5 mr-1 mb-1 rounded-full text-xs font-semibold border ${n.cls}" title="${n.tipo}">
+       <i class="fa-solid fa-layer-group"></i> ${escapeHtml(n.nombre)}
+     </span>`
+  ).join("");
+}
+
 const columnsBusqueda = [
   { data: "id", title: "ID", width: "60px" },
   { data: "nombre", title: "Nombre" },
   { data: "brand_nombre", title: "Marca", defaultContent: "—" },
-  { data: "categoria_principal_nombre", title: "Categoría", defaultContent: "—" },
+  {
+    data: null,
+    title: "Categoría",
+    orderable: false,
+    render: (row) => renderCategoriaBadges(row)
+  },
   {
     data: "stock_total",
     title: "Stock total",
@@ -249,6 +273,10 @@ function normalizeProducto(row) {
     stock_total: Number(row.stock_total ?? 0),
     categoria_principal_id: row.categoria_principal_id != null ? Number(row.categoria_principal_id) : null,
     categoria_principal_nombre: row.categoria_principal_nombre || "—",
+    categoria_secundaria_id: row.categoria_secundaria_id != null ? Number(row.categoria_secundaria_id) : null,
+    categoria_secundaria_nombre: row.categoria_secundaria_nombre || "",
+    subcategoria_id: row.subcategoria_id != null ? Number(row.subcategoria_id) : null,
+    subcategoria_nombre: row.subcategoria_nombre || "",
     brand_id: row.brand_id != null ? Number(row.brand_id) : null,
     brand_nombre: row.brand_nombre || "—",
     unit_id: row.unit_id != null ? Number(row.unit_id) : null,
@@ -345,8 +373,14 @@ function aplicarFiltros() {
   const brandId = filterMarca?.value ? Number(filterMarca.value) : null;
   const unitId = filterUnidad?.value ? Number(filterUnidad.value) : null;
   const sizeId = filterTamano?.value ? Number(filterTamano.value) : null;
+  const soloActivos = toggleSoloActivos ? !!toggleSoloActivos.checked : true;
 
   let result = productosAll.slice();
+
+  // Filtro por estado (toggle todos / solo activos)
+  if (soloActivos) {
+    result = result.filter(p => Number(p.estado) === 1);
+  }
 
   // Filtro por texto (ID o Nombre)
   if (term) {
@@ -488,8 +522,8 @@ async function cambiarEstadoProducto(nuevoEstado) {
     descripcion: p.descripcion ?? "",
     precio: Number(p.precio || 0),
     categoria_principal_id: p.categoria_principal_id,
-    categoria_secundaria_id: p._raw?.categoria_secundaria_id ?? null,
-    subcategoria_id: p._raw?.subcategoria_id ?? null,
+    categoria_secundaria_id: p.categoria_secundaria_id ?? p._raw?.categoria_secundaria_id ?? null,
+    subcategoria_id: p.subcategoria_id ?? p._raw?.subcategoria_id ?? null,
     unit_id: p.unit_id,
     unit_value: Number(p.unit_value ?? p._raw?.unit_value ?? 0),
     size_id: p.size_id,
@@ -598,6 +632,16 @@ inputBuscar?.addEventListener("keydown", (e) => {
 });
 [filterCategoria, filterMarca, filterUnidad, filterTamano].forEach(s => {
   s?.addEventListener("change", aplicarFiltros);
+});
+
+toggleSoloActivos?.addEventListener("change", () => {
+  const soloActivos = toggleSoloActivos.checked;
+  if (toggleSoloActivosLabel) {
+    toggleSoloActivosLabel.textContent = soloActivos ? "Solo activos" : "Todos";
+    toggleSoloActivosLabel.classList.toggle("text-success", soloActivos);
+    toggleSoloActivosLabel.classList.toggle("text-textMuted", !soloActivos);
+  }
+  aplicarFiltros();
 });
 
 btnLimpiarFiltros?.addEventListener("click", () => {

@@ -94,6 +94,28 @@ function mapProductos(listish) {
 let tablaProductos = null;
 let tablaBusqueda = null;
 
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function renderCategoriaBadges(row) {
+  const niveles = [
+    { nombre: row.categoria_principal_nombre, tipo: "Principal", cls: "bg-primary/10 text-primary border-primary/20" },
+    { nombre: row.categoria_secundaria_nombre, tipo: "Secundaria", cls: "bg-secondary/10 text-secondary border-secondary/20" },
+    { nombre: row.subcategoria_nombre, tipo: "Sub", cls: "bg-accent/10 text-accent-dark border-accent/20" }
+  ].filter(n => n.nombre);
+
+  if (!niveles.length) return `<span class="text-textMuted text-xs italic">Sin categoría</span>`;
+
+  return niveles.map(n =>
+    `<span class="inline-flex items-center gap-1 px-2 py-0.5 mr-1 mb-1 rounded-full text-xs font-semibold border ${n.cls}" title="${n.tipo}">
+       <i class="fa-solid fa-layer-group"></i> ${escapeHtml(n.nombre)}
+     </span>`
+  ).join("");
+}
+
 function renderDataTable(selector, data, columns) {
   const table = $(selector);
   
@@ -181,7 +203,12 @@ const columnsGeneral = [
       return `$${Number(data).toFixed(2)}`;
     }
   },
-  { data: "categoria_principal_nombre", title: "Categoría" },
+  {
+    data: null,
+    title: "Categoría",
+    orderable: false,
+    render: (row) => renderCategoriaBadges(row)
+  },
   { data: "brand_nombre", title: "Marca" },
   {
     data: "estado",
@@ -210,14 +237,19 @@ const columnsGeneral = [
 const columnsBusqueda = [
   { data: "id", title: "ID" },
   { data: "nombre", title: "Nombre" },
-  { 
-    data: "precio", 
+  {
+    data: "precio",
     title: "Precio",
     render: function(data) {
       return `$${Number(data).toFixed(2)}`;
     }
   },
-  { data: "categoria_principal_nombre", title: "Categoría" },
+  {
+    data: null,
+    title: "Categoría",
+    orderable: false,
+    render: (row) => renderCategoriaBadges(row)
+  },
   { data: "brand_nombre", title: "Marca" },
   { 
     data: "estado", 
