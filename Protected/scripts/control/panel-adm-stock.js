@@ -2,6 +2,7 @@
 import { stockAPI } from "/admin-resources/scripts/api/stockManager.js";
 import { productosAPI } from "/admin-resources/scripts/api/productosManager.js";
 import { cajasAPI } from "/admin-resources/scripts/api/cajasManager.js";
+import { nuevoProductoAPI } from "/admin-resources/scripts/api/nuevoProductoManager.js";
 
 /* =========================
    Helpers de envelope
@@ -49,9 +50,12 @@ function friendlyError(err) {
 /* =========================
    Estado
    ========================= */
+let productosAll = [];          // catálogo completo (productos_get_all)
+let cajasPorProducto = new Map(); // producto_id -> [{ caja_id, etiqueta, stock }, ...]
+let cajasList = [];             // lista de todas las cajas
+
 let currentProducto = null;     // producto seleccionado
 let currentDetalles = [];       // detalles (caja+stock) del producto
-let cajasList = [];             // lista de todas las cajas
 
 let tablaBusqueda = null;
 let tablaStock = null;
@@ -62,10 +66,18 @@ let tablaStock = null;
 const inputBuscar = document.getElementById("inputBuscar");
 const tipoBusqueda = document.getElementById("tipoBusqueda");
 const btnBuscar = document.getElementById("btnBuscar");
+const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
+const btnRefrescarCatalogo = document.getElementById("btnRefrescarCatalogo");
+
+const filterCategoria = document.getElementById("filterCategoria");
+const filterMarca = document.getElementById("filterMarca");
+const filterUnidad = document.getElementById("filterUnidad");
+const filterTamano = document.getElementById("filterTamano");
 
 const resultadosBusqueda = document.getElementById("resultadosBusqueda");
-const productoSeleccionadoEl = document.getElementById("productoSeleccionado");
+const resultadosCount = document.getElementById("resultadosCount");
 
+const productoSeleccionadoEl = document.getElementById("productoSeleccionado");
 const prodNombre = document.getElementById("prodNombre");
 const prodId = document.getElementById("prodId");
 const prodMarca = document.getElementById("prodMarca");
@@ -119,7 +131,7 @@ window.addEventListener("keydown", (e) => {
    ========================= */
 const dtLang = {
   "decimal": "",
-  "emptyTable": "No hay datos disponibles en la tabla",
+  "emptyTable": "No hay productos para mostrar",
   "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
   "infoEmpty": "Mostrando 0 a 0 de 0 registros",
   "infoFiltered": "(filtrado de _MAX_ registros totales)",
@@ -149,18 +161,53 @@ function renderDataTable(selector, data, columns) {
   });
 }
 
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function renderCajasBadges(producto_id) {
+  const list = cajasPorProducto.get(Number(producto_id)) || [];
+  if (!list.length) {
+    return `<span class="text-textMuted text-xs italic">Sin asignar</span>`;
+  }
+  return list.map(c => {
+    const eti = c.etiqueta ? escapeHtml(c.etiqueta) : `Caja ${c.caja_id}`;
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 mr-1 mb-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20" title="Caja #${c.caja_id}">
+              <i class="fa-solid fa-box"></i> ${eti}
+              <span class="ml-1 px-1.5 rounded bg-primary text-white">${Number(c.stock || 0)}</span>
+            </span>`;
+  }).join("");
+}
+
 const columnsBusqueda = [
-  { data: "id", title: "ID" },
+  { data: "id", title: "ID", width: "60px" },
   { data: "nombre", title: "Nombre" },
   { data: "brand_nombre", title: "Marca", defaultContent: "—" },
   { data: "categoria_principal_nombre", title: "Categoría", defaultContent: "—" },
+  {
+    data: "stock_total",
+    title: "Stock total",
+    render: (d) => {
+      const n = Number(d || 0);
+      const cls = n > 0 ? "text-success" : "text-textMuted";
+      return `<span class="font-bold ${cls}">${n}</span>`;
+    }
+  },
+  {
+    data: null,
+    title: "Cajas",
+    orderable: false,
+    render: (row) => renderCajasBadges(row.id)
+  },
   {
     data: null,
     title: "Acciones",
     orderable: false,
     render: (row) =>
-      `<button class="btn-row primary js-seleccionar" data-id="${row.id}" title="Seleccionar">
-         <i class="fa-solid fa-check"></i> Seleccionar
+      `<button class="btn-row primary js-seleccionar" data-id="${row.id}" title="Gestionar stock">
+         <i class="fa-solid fa-warehouse"></i> Gestionar
        </button>`
   }
 ];
@@ -177,7 +224,144 @@ const columnsStock = [
 ];
 
 /* =========================
-   Carga de cajas para selects
+   Normalización de productos
+   ========================= */
+function normalizeProducto(row) {
+  if (!row || typeof row !== "object") return null;
+  const id = row.producto_id ?? row.id;
+  if (id == null) return null;
+  return {
+    id: Number(id),
+    nombre: row.nombre || row.Nombre || "",
+    descripcion: row.descripcion || "",
+    precio: Number(row.precio || 0),
+    stock_total: Number(row.stock_total ?? 0),
+    categoria_principal_id: row.categoria_principal_id != null ? Number(row.categoria_principal_id) : null,
+    categoria_principal_nombre: row.categoria_principal_nombre || "—",
+    brand_id: row.brand_id != null ? Number(row.brand_id) : null,
+    brand_nombre: row.brand_nombre || "—",
+    unit_id: row.unit_id != null ? Number(row.unit_id) : null,
+    unit_nombre: row.unit_nombre || "",
+    unit_value: row.unit_value ?? null,
+    size_id: row.size_id != null ? Number(row.size_id) : null,
+    size_nombre: row.size_nombre || "",
+    size_value: row.size_value ?? null,
+    estado: row.estado != null ? Number(row.estado) : 1,
+    _raw: row
+  };
+}
+
+/* =========================
+   Carga de catálogo
+   ========================= */
+async function loadCatalogo() {
+  try {
+    // Productos (con stock_total + metadatos)
+    const respProductos = assertOk(await productosAPI.getAll());
+    productosAll = toArrayData(respProductos).map(normalizeProducto).filter(Boolean);
+
+    // Distribución por cajas (productos_get_by_cajas)
+    cajasPorProducto = new Map();
+    try {
+      const respCajas = await fetch("/productos/por_cajas", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      }).then(r => r.json());
+      assertOk(respCajas);
+      const filas = toArrayData(respCajas);
+      filas.forEach(row => {
+        const pid = Number(row.producto_id);
+        if (!pid) return;
+        const entry = {
+          caja_id: row.caja_id != null ? Number(row.caja_id) : null,
+          etiqueta: row.caja_etiqueta || row.etiqueta || null,
+          stock: Number(row.stock || 0)
+        };
+        if (!cajasPorProducto.has(pid)) cajasPorProducto.set(pid, []);
+        cajasPorProducto.get(pid).push(entry);
+      });
+    } catch (e) {
+      console.warn("No se pudo cargar productos_por_cajas:", e);
+    }
+  } catch (err) {
+    console.error("Error cargando catálogo", err);
+    productosAll = [];
+    cajasPorProducto = new Map();
+    showToast(friendlyError(err), "error", "fa-circle-exclamation");
+  }
+}
+
+/* =========================
+   Carga de filtros (selects)
+   ========================= */
+async function loadFiltros() {
+  try {
+    const [cats, brands, units, sizes] = await Promise.all([
+      nuevoProductoAPI.getCategorias(),
+      nuevoProductoAPI.getBrands(),
+      nuevoProductoAPI.getUnits(),
+      nuevoProductoAPI.getSizes()
+    ]);
+    fillFilterSelect(filterCategoria, toArrayData(cats), "categoria_id", "nombre", "Todas");
+    fillFilterSelect(filterMarca, toArrayData(brands), "brand_id", "nombre", "Todas");
+    fillFilterSelect(filterUnidad, toArrayData(units), "unit_id", "nombre", "Todas");
+    fillFilterSelect(filterTamano, toArrayData(sizes), "size_id", "nombre", "Todas");
+  } catch (err) {
+    console.error("Error cargando filtros", err);
+    showToast("No se pudieron cargar los filtros", "error", "fa-circle-exclamation");
+  }
+}
+
+function fillFilterSelect(select, items, valKey, textKey, placeholder = "Todas") {
+  if (!select) return;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  items.forEach(it => {
+    const opt = document.createElement("option");
+    opt.value = it[valKey];
+    opt.textContent = it[textKey];
+    select.appendChild(opt);
+  });
+}
+
+/* =========================
+   Filtro combinado
+   ========================= */
+function aplicarFiltros() {
+  const term = (inputBuscar?.value || "").trim().toLowerCase();
+  const tipo = tipoBusqueda?.value || "id";
+  const catId = filterCategoria?.value ? Number(filterCategoria.value) : null;
+  const brandId = filterMarca?.value ? Number(filterMarca.value) : null;
+  const unitId = filterUnidad?.value ? Number(filterUnidad.value) : null;
+  const sizeId = filterTamano?.value ? Number(filterTamano.value) : null;
+
+  let result = productosAll.slice();
+
+  // Filtro por texto (ID o Nombre)
+  if (term) {
+    if (tipo === "id") {
+      const n = Number(term);
+      if (Number.isFinite(n)) {
+        result = result.filter(p => p.id === n);
+      } else {
+        result = [];
+      }
+    } else {
+      result = result.filter(p => p.nombre.toLowerCase().includes(term));
+    }
+  }
+
+  if (catId) result = result.filter(p => p.categoria_principal_id === catId);
+  if (brandId) result = result.filter(p => p.brand_id === brandId);
+  if (unitId) result = result.filter(p => p.unit_id === unitId);
+  if (sizeId) result = result.filter(p => p.size_id === sizeId);
+
+  resultadosCount.textContent = result.length;
+  tablaBusqueda = renderDataTable("#tablaBusqueda", result, columnsBusqueda);
+}
+
+/* =========================
+   Carga de cajas para selects de modales
    ========================= */
 async function loadCajas() {
   try {
@@ -191,7 +375,6 @@ async function loadCajas() {
 }
 
 function cajaLabel(c) {
-  // Intentamos varios nombres comunes
   const id = c.caja_id ?? c.id;
   const etiqueta = c.etiqueta ?? c.nombre ?? c.label ?? `Caja ${id}`;
   return `#${id} — ${etiqueta}`;
@@ -225,13 +408,18 @@ function fillDetalleSelect(select) {
    ========================= */
 async function seleccionarProductoPorId(id) {
   try {
-    const resp = assertOk(await productosAPI.getById(id));
-    const data = unwrapOne(resp);
-    if (!data) {
-      showToast("Producto no encontrado", "error", "fa-circle-exclamation");
-      return;
+    // Primero buscamos en el catálogo cacheado
+    let prod = productosAll.find(p => p.id === Number(id));
+    if (!prod) {
+      const resp = assertOk(await productosAPI.getById(id));
+      const data = unwrapOne(resp);
+      if (!data) {
+        showToast("Producto no encontrado", "error", "fa-circle-exclamation");
+        return;
+      }
+      prod = normalizeProducto(data);
     }
-    currentProducto = data;
+    currentProducto = prod;
     pintarProducto();
     productoSeleccionadoEl.classList.remove("hidden");
     await cargarStockProducto();
@@ -244,16 +432,15 @@ async function seleccionarProductoPorId(id) {
 function pintarProducto() {
   if (!currentProducto) return;
   const p = currentProducto;
-  const id = p.producto_id ?? p.id ?? "—";
   prodNombre.textContent = p.nombre || "—";
-  prodId.textContent = id;
-  prodMarca.textContent = p.brand_nombre || p.marca || "—";
-  prodCategoria.textContent = p.categoria_principal_nombre || p.categoria || "—";
+  prodId.textContent = p.id ?? "—";
+  prodMarca.textContent = p.brand_nombre || "—";
+  prodCategoria.textContent = p.categoria_principal_nombre || "—";
 }
 
 async function cargarStockProducto() {
   if (!currentProducto) return;
-  const id = currentProducto.producto_id ?? currentProducto.id;
+  const id = currentProducto.id;
   try {
     const resp = assertOk(await stockAPI.getByProducto(id));
     currentDetalles = toArrayData(resp);
@@ -276,58 +463,53 @@ function renderResumen() {
 }
 
 /* =========================
-   Búsqueda
+   Refresco de catálogo + tabla tras mutaciones
    ========================= */
-btnBuscar?.addEventListener("click", async () => {
-  const valor = inputBuscar?.value.trim();
-  const tipo = tipoBusqueda?.value;
-  if (!valor) {
-    showToast("Ingresa un valor para buscar.", "error", "fa-circle-exclamation");
-    return;
-  }
-
-  try {
-    if (tipo === "id") {
-      const id = Number(valor);
-      if (!Number.isInteger(id) || id <= 0) {
-        showToast("Ingresa un ID válido (entero positivo).", "error", "fa-circle-exclamation");
-        return;
-      }
-      resultadosBusqueda.classList.add("hidden");
-      await seleccionarProductoPorId(id);
-    } else {
-      const resp = assertOk(await productosAPI.getByNombre(valor));
-      const items = toArrayData(resp).map(r => ({
-        id: r.producto_id ?? r.id,
-        nombre: r.nombre,
-        brand_nombre: r.brand_nombre || "—",
-        categoria_principal_nombre: r.categoria_principal_nombre || "—"
-      })).filter(x => x.id);
-
-      resultadosBusqueda.classList.remove("hidden");
-      tablaBusqueda = renderDataTable("#tablaBusqueda", items, columnsBusqueda);
-
-      if (items.length === 0) {
-        showToast("No se encontraron productos.", "info", "fa-info-circle");
-      } else if (items.length === 1) {
-        await seleccionarProductoPorId(items[0].id);
-      } else {
-        showToast(`Se encontraron ${items.length} productos`, "success", "fa-check-circle");
-      }
+async function refrescarTodo() {
+  await loadCatalogo();
+  aplicarFiltros();
+  if (currentProducto) {
+    // Actualizamos referencia desde el catálogo recargado
+    const updated = productosAll.find(p => p.id === currentProducto.id);
+    if (updated) {
+      currentProducto = updated;
+      pintarProducto();
     }
-  } catch (err) {
-    showToast(friendlyError(err), "error", "fa-circle-exclamation");
+    await cargarStockProducto();
   }
-});
+}
 
+/* =========================
+   Eventos: búsqueda y filtros
+   ========================= */
+btnBuscar?.addEventListener("click", aplicarFiltros);
 inputBuscar?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
-    btnBuscar.click();
+    aplicarFiltros();
   }
 });
+[filterCategoria, filterMarca, filterUnidad, filterTamano].forEach(s => {
+  s?.addEventListener("change", aplicarFiltros);
+});
 
-// Delegación: botón "Seleccionar" en la tabla de búsqueda
+btnLimpiarFiltros?.addEventListener("click", () => {
+  inputBuscar.value = "";
+  tipoBusqueda.value = "id";
+  filterCategoria.value = "";
+  filterMarca.value = "";
+  filterUnidad.value = "";
+  filterTamano.value = "";
+  aplicarFiltros();
+});
+
+btnRefrescarCatalogo?.addEventListener("click", async () => {
+  await loadCatalogo();
+  aplicarFiltros();
+  showToast("Catálogo actualizado", "success", "fa-check-circle");
+});
+
+// Delegación: botón "Gestionar" en la tabla de búsqueda
 $(document).on("click", "#tablaBusqueda tbody .js-seleccionar", function () {
   const id = Number(this.dataset.id);
   if (!id) return;
@@ -335,7 +517,7 @@ $(document).on("click", "#tablaBusqueda tbody .js-seleccionar", function () {
 });
 
 /* =========================
-   Refrescar stock
+   Refrescar stock del producto seleccionado
    ========================= */
 btnRefrescarStock?.addEventListener("click", async () => {
   if (!currentProducto) return;
@@ -364,10 +546,9 @@ document.getElementById("formAddStock")?.addEventListener("submit", async (e) =>
     if (!caja_id) throw new Error("Selecciona una caja");
     if (!Number.isInteger(delta) || delta <= 0) throw new Error("Cantidad debe ser un entero > 0");
 
-    const id = currentProducto.producto_id ?? currentProducto.id;
-    assertOk(await stockAPI.add({ caja_id, producto_id: id, delta }));
+    assertOk(await stockAPI.add({ caja_id, producto_id: currentProducto.id, delta }));
     closeModal("modalAddStock");
-    await cargarStockProducto();
+    await refrescarTodo();
     showToast("Stock agregado correctamente", "success", "fa-check-circle");
   } catch (err) {
     showToast(friendlyError(err), "error", "fa-circle-exclamation");
@@ -382,7 +563,6 @@ btnRemoveStock?.addEventListener("click", () => {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
     return;
   }
-  // En remove, solo cajas con stock para este producto
   const select = document.getElementById("removeCajaSelect");
   select.innerHTML = '<option value="">Seleccione una caja…</option>';
   currentDetalles.filter(d => Number(d.stock) > 0 && d.caja_id).forEach(d => {
@@ -403,10 +583,9 @@ document.getElementById("formRemoveStock")?.addEventListener("submit", async (e)
     if (!caja_id) throw new Error("Selecciona una caja");
     if (!Number.isInteger(delta) || delta <= 0) throw new Error("Cantidad debe ser un entero > 0");
 
-    const id = currentProducto.producto_id ?? currentProducto.id;
-    assertOk(await stockAPI.remove({ caja_id, producto_id: id, delta }));
+    assertOk(await stockAPI.remove({ caja_id, producto_id: currentProducto.id, delta }));
     closeModal("modalRemoveStock");
-    await cargarStockProducto();
+    await refrescarTodo();
     showToast("Stock retirado correctamente", "success", "fa-check-circle");
   } catch (err) {
     showToast(friendlyError(err), "error", "fa-circle-exclamation");
@@ -438,10 +617,9 @@ document.getElementById("formSetStock")?.addEventListener("submit", async (e) =>
     if (!detalle_id) throw new Error("Selecciona un detalle");
     if (!Number.isInteger(stock) || stock < 0) throw new Error("Stock debe ser entero ≥ 0");
 
-    const id = currentProducto.producto_id ?? currentProducto.id;
-    assertOk(await stockAPI.setByDetalle({ detalle_id, producto_id: id, stock }));
+    assertOk(await stockAPI.setByDetalle({ detalle_id, producto_id: currentProducto.id, stock }));
     closeModal("modalSetStock");
-    await cargarStockProducto();
+    await refrescarTodo();
     showToast("Stock ajustado correctamente", "success", "fa-check-circle");
   } catch (err) {
     showToast(friendlyError(err), "error", "fa-circle-exclamation");
@@ -456,7 +634,6 @@ btnMoveStock?.addEventListener("click", () => {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
     return;
   }
-  // Origen: cajas con stock
   const origenSelect = document.getElementById("moveOrigenSelect");
   origenSelect.innerHTML = '<option value="">Seleccione una caja origen…</option>';
   currentDetalles.filter(d => Number(d.stock) > 0 && d.caja_id).forEach(d => {
@@ -465,7 +642,6 @@ btnMoveStock?.addEventListener("click", () => {
     opt.textContent = `#${d.caja_id} — ${d.etiqueta || "Caja"} (disp: ${d.stock})`;
     origenSelect.appendChild(opt);
   });
-  // Destino: todas las cajas
   fillCajaSelect(document.getElementById("moveDestinoSelect"));
   document.getElementById("moveDestinoSelect").firstChild.textContent = "Seleccione una caja destino…";
   document.getElementById("moveCantidad").value = "";
@@ -483,10 +659,9 @@ document.getElementById("formMoveStock")?.addEventListener("submit", async (e) =
     if (caja_origen === caja_destino) throw new Error("Origen y destino deben ser diferentes");
     if (!Number.isInteger(cantidad) || cantidad <= 0) throw new Error("Cantidad debe ser un entero > 0");
 
-    const id = currentProducto.producto_id ?? currentProducto.id;
-    assertOk(await stockAPI.move({ producto_id: id, caja_origen, caja_destino, cantidad }));
+    assertOk(await stockAPI.move({ producto_id: currentProducto.id, caja_origen, caja_destino, cantidad }));
     closeModal("modalMoveStock");
-    await cargarStockProducto();
+    await refrescarTodo();
     showToast("Stock movido correctamente", "success", "fa-check-circle");
   } catch (err) {
     showToast(friendlyError(err), "error", "fa-circle-exclamation");
@@ -501,14 +676,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   tablaBusqueda = renderDataTable("#tablaBusqueda", [], columnsBusqueda);
   tablaStock = renderDataTable("#tablaStock", [], columnsStock);
 
-  await loadCajas();
+  await Promise.all([loadCatalogo(), loadCajas(), loadFiltros()]);
+  aplicarFiltros();
 
   // Si la URL trae ?id= , preseleccionamos el producto
   const params = new URLSearchParams(window.location.search);
   const preId = Number(params.get("id"));
   if (Number.isInteger(preId) && preId > 0) {
     await seleccionarProductoPorId(preId);
-  } else {
-    showToast("Busca un producto por ID o nombre para gestionar su stock.", "info", "fa-info-circle");
   }
+
+  showToast(`Catálogo cargado: ${productosAll.length} productos`, "success", "fa-check-circle");
 });

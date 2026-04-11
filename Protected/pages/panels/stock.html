@@ -97,10 +97,21 @@
 
         <!-- Búsqueda de producto -->
         <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
-          <h2 class="font-heading text-xl font-bold text-primary m-0 mb-5">Seleccionar producto</h2>
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+            <h2 class="font-heading text-xl font-bold text-primary m-0">Búsqueda</h2>
+            <div class="flex gap-2">
+              <button id="btnLimpiarFiltros" class="bg-white text-textMuted border border-gray-300 px-4 py-2 rounded-md font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-broom"></i> Limpiar filtros
+              </button>
+              <button id="btnRefrescarCatalogo" class="bg-primary-dark text-white px-4 py-2 rounded-md font-semibold hover:bg-primary transition-colors flex items-center justify-center gap-2 text-sm" title="Recargar catálogo">
+                <i class="fa-solid fa-rotate"></i> Recargar
+              </button>
+            </div>
+          </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-[1fr_140px_auto] gap-3">
-            <input type="text" id="inputBuscar" placeholder="ID o Nombre del producto…"
+          <!-- Búsqueda por texto (ID o Nombre) -->
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_140px_auto] gap-3 mb-4">
+            <input type="text" id="inputBuscar" placeholder="ID o Nombre…"
               class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
             <select id="tipoBusqueda" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
               <option value="id">ID</option>
@@ -111,13 +122,50 @@
             </button>
           </div>
 
-          <!-- Resultados de búsqueda por nombre -->
-          <div id="resultadosBusqueda" class="mt-5 hidden">
+          <!-- Filtros por selects -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-1" for="filterCategoria">Categoría</label>
+              <select id="filterCategoria" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-1" for="filterMarca">Marca</label>
+              <select id="filterMarca" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-1" for="filterUnidad">Unidad de Volumen</label>
+              <select id="filterUnidad" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-1" for="filterTamano">Unidad de Tamaño</label>
+              <select id="filterTamano" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                <option value="">Todas</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Resultados -->
+          <div id="resultadosBusqueda" class="mt-6">
+            <div class="text-sm text-textMuted mb-3">
+              <span id="resultadosCount">0</span> producto(s) encontrado(s)
+            </div>
             <div class="overflow-x-auto w-full">
               <table id="tablaBusqueda" class="display w-full text-left">
                 <thead>
                   <tr>
-                    <th>ID</th><th>Nombre</th><th>Marca</th><th>Categoría</th><th>Acciones</th>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                    <th>Categoría</th>
+                    <th>Stock total</th>
+                    <th>Cajas</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -342,6 +390,7 @@
   <script type="module" src="/admin-resources/scripts/api/stockManager.js"></script>
   <script type="module" src="/admin-resources/scripts/api/productosManager.js"></script>
   <script type="module" src="/admin-resources/scripts/api/cajasManager.js"></script>
+  <script type="module" src="/admin-resources/scripts/api/nuevoProductoManager.js"></script>
   <script type="module" src="/admin-resources/scripts/control/panel-adm-stock.js"></script>
 </body>
 </html>
