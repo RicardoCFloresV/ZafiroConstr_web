@@ -669,6 +669,22 @@ document.getElementById("formAddStock")?.addEventListener("submit", async (e) =>
 /* =========================
    Acciones: RETIRAR
    ========================= */
+function fillCajasConStockSelect(select, placeholder = "Seleccione una caja…") {
+  if (!select || !currentProducto) return 0;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  // Misma fuente que la tabla de búsqueda: cajasPorProducto
+  const lista = (cajasPorProducto.get(Number(currentProducto.id)) || [])
+    .filter(c => Number(c.stock) > 0 && c.caja_id);
+  lista.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.caja_id;
+    const eti = c.etiqueta || `Caja ${c.caja_id}`;
+    opt.textContent = `#${c.caja_id} — ${eti} (disp: ${Number(c.stock)})`;
+    select.appendChild(opt);
+  });
+  return lista.length;
+}
+
 btnRemoveStock?.addEventListener("click", () => {
   if (!currentProducto) {
     showToast("Selecciona primero un producto.", "info", "fa-info-circle");
@@ -678,14 +694,11 @@ btnRemoveStock?.addEventListener("click", () => {
     showToast("El producto está inactivo. Actívalo antes de modificar su stock.", "error", "fa-circle-exclamation");
     return;
   }
-  const select = document.getElementById("removeCajaSelect");
-  select.innerHTML = '<option value="">Seleccione una caja…</option>';
-  currentDetalles.filter(d => Number(d.stock) > 0 && d.caja_id).forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d.caja_id;
-    opt.textContent = `#${d.caja_id} — ${d.etiqueta || "Caja"} (disp: ${d.stock})`;
-    select.appendChild(opt);
-  });
+  const count = fillCajasConStockSelect(document.getElementById("removeCajaSelect"));
+  if (count === 0) {
+    showToast("Este producto no tiene stock en ninguna caja.", "info", "fa-info-circle");
+    return;
+  }
   document.getElementById("removeDelta").value = "";
   openModal("modalRemoveStock");
 });
@@ -757,14 +770,11 @@ btnMoveStock?.addEventListener("click", () => {
     showToast("El producto está inactivo. Actívalo antes de modificar su stock.", "error", "fa-circle-exclamation");
     return;
   }
-  const origenSelect = document.getElementById("moveOrigenSelect");
-  origenSelect.innerHTML = '<option value="">Seleccione una caja origen…</option>';
-  currentDetalles.filter(d => Number(d.stock) > 0 && d.caja_id).forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d.caja_id;
-    opt.textContent = `#${d.caja_id} — ${d.etiqueta || "Caja"} (disp: ${d.stock})`;
-    origenSelect.appendChild(opt);
-  });
+  const count = fillCajasConStockSelect(document.getElementById("moveOrigenSelect"), "Seleccione una caja origen…");
+  if (count === 0) {
+    showToast("Este producto no tiene stock en ninguna caja para mover.", "info", "fa-info-circle");
+    return;
+  }
   fillCajaSelect(document.getElementById("moveDestinoSelect"));
   document.getElementById("moveDestinoSelect").firstChild.textContent = "Seleccione una caja destino…";
   document.getElementById("moveCantidad").value = "";

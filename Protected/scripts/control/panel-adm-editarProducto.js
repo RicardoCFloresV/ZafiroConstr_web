@@ -287,37 +287,107 @@ async function saveProduct() {
     const id = els.id.value;
     if(!id) return;
 
-    // 1. Datos de Texto
-    const payload = {
-        producto_id: id,
+    // ---- DEBUG: dump de los valores brutos del formulario ----
+    const rawValues = {
+        producto_id: els.id.value,
         nombre: els.nombre.value,
         descripcion: els.descripcion.value,
         precio: els.precio.value,
-        brand_id: els.brand.value || null,
+        brand_id: els.brand.value,
         categoria_principal_id: els.catPri.value,
-        categoria_secundaria_id: els.catSec.value || null,
-        subcategoria_id: els.subCat.value || null,
+        categoria_secundaria_id: els.catSec.value,
+        subcategoria_id: els.subCat.value,
         unit_id: els.unit.value,
-        unit_value: els.unitVal.value || null,
-        size_id: els.size.value || null,
-        size_value: els.sizeVal.value || null
-        // caja_id y stock usualmente no se editan aqui directamente, o requieren endpoints especiales
+        unit_value: els.unitVal.value,
+        size_id: els.size.value,
+        size_value: els.sizeVal.value
     };
+    console.group("[saveProduct] Datos del formulario");
+    console.table(rawValues);
+    console.groupEnd();
+
+    // ---- Coerción a los tipos que espera el backend (Rules.Update) ----
+    // Required en backend: nombre(string), precio(number>=0), categoria_principal_id(int>0),
+    //   unit_id(int>0), unit_value(number>=0), size_id(int>0), size_value(string 1..50), brand_id(int>0)
+    const toIntOrNull = v => {
+        const n = Number(v);
+        return Number.isInteger(n) && n > 0 ? n : null;
+    };
+    const toFloatOrNull = v => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+    };
+
+    const payload = {
+        producto_id: Number(id),
+        nombre: (els.nombre.value || "").trim(),
+        descripcion: (els.descripcion.value || "").trim(),
+        precio: toFloatOrNull(els.precio.value),
+        categoria_principal_id: toIntOrNull(els.catPri.value),
+        categoria_secundaria_id: toIntOrNull(els.catSec.value),
+        subcategoria_id: toIntOrNull(els.subCat.value),
+        unit_id: toIntOrNull(els.unit.value),
+        unit_value: toFloatOrNull(els.unitVal.value),
+        size_id: toIntOrNull(els.size.value),
+        size_value: (els.sizeVal.value || "").trim(),
+        brand_id: toIntOrNull(els.brand.value)
+    };
+
+    // Validación local previa: identificar exactamente qué falta antes de pegarle al server
+    const missing = [];
+    if (!payload.nombre) missing.push("nombre");
+    if (payload.precio == null || payload.precio < 0) missing.push("precio");
+    if (!payload.categoria_principal_id) missing.push("categoria_principal_id");
+    if (!payload.unit_id) missing.push("unit_id");
+    if (payload.unit_value == null || payload.unit_value < 0) missing.push("unit_value");
+    if (!payload.size_id) missing.push("size_id");
+    if (!payload.size_value || payload.size_value.length > 50) missing.push("size_value");
+    if (!payload.brand_id) missing.push("brand_id");
+
+    console.group("[saveProduct] Payload a enviar");
+    console.log("payload:", payload);
+    console.log("JSON:", JSON.stringify(payload));
+    if (missing.length) console.warn("Campos faltantes/inválidos:", missing);
+    console.groupEnd();
+
+    if (missing.length) {
+        showToast("Faltan/inválidos: " + missing.join(", "), "error");
+        return;
+    }
 
     els.btnGuardar.disabled = true;
     els.btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
     try {
-        // A. Actualizar Datos
-        // NOTA: Asumo que existe /productos/update. Si no, habría que crearlo en el servidor.
-        // Si no tienes endpoint de update, esto fallará. 
         const updateResp = await fetch('/productos/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // necesario: /productos/update está protegido por requireAuth
             body: JSON.stringify(payload)
         });
-        
-        if(!updateResp.ok) throw new Error("Error actualizando datos del producto");
+
+        // Leer SIEMPRE el cuerpo (incluso cuando !ok) para extraer message/errors del backend
+        const ct = updateResp.headers.get('content-type') || '';
+        const respBody = ct.includes('application/json')
+            ? await updateResp.json().catch(() => null)
+            : await updateResp.text().catch(() => null);
+
+        console.group("[saveProduct] Respuesta del servidor");
+        console.log("status:", updateResp.status, updateResp.statusText);
+        console.log("ok:", updateResp.ok);
+        console.log("body:", respBody);
+        console.groupEnd();
+
+        if (!updateResp.ok || (respBody && respBody.success === false)) {
+            const serverMsg = (respBody && (respBody.message || respBody.error)) || `HTTP ${updateResp.status}`;
+            const errors = respBody && respBody.errors;
+            const detail = errors
+                ? " — " + (Array.isArray(errors)
+                    ? errors.join(", ")
+                    : Object.entries(errors).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join("/") : v}`).join("; "))
+                : "";
+            throw new Error(serverMsg + detail);
+        }
 
         // B. Subir Imagen (si hay nueva)
         if (newImageFile) {
@@ -328,14 +398,13 @@ async function saveProduct() {
         }
 
         showToast("Producto actualizado correctamente", "success", "fa-check");
-        
-        // Esperar y volver
+
         setTimeout(() => {
             window.location.href = "/admin-resources/pages/panels/productos.html";
         }, 1500);
 
     } catch (err) {
-        console.error(err);
+        console.error("[saveProduct] Error:", err);
         showToast("Error al guardar: " + err.message, "error");
         els.btnGuardar.disabled = false;
         els.btnGuardar.innerHTML = 'Guardar Cambios';
