@@ -35,42 +35,7 @@
 <body class="font-body bg-bg text-textMain overflow-x-hidden">
 
   <div class="flex min-h-screen w-full relative">
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[990] hidden lg:hidden"></div>
-
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[1000] w-[260px] bg-primary text-white flex flex-col transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0">
-      <div class="h-[70px] flex items-center px-6 gap-4 bg-primary-dark shrink-0">
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80" alt="Logo" class="w-10 h-10 rounded-full object-cover">
-        <span class="font-heading font-bold text-lg">Zafiro Home</span>
-        <button id="sidebar-close" class="ml-auto lg:hidden text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="block lg:hidden p-6 bg-black/15 border-b border-white/5">
-        <div class="flex items-center gap-3">
-          <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover">
-          <div>
-            <div id="sidebar-username" class="font-bold text-sm text-white">Cargando…</div>
-            <div id="sidebar-role" class="text-xs text-white/60">Cargando…</div>
-          </div>
-        </div>
-      </div>
-
-      <ul class="list-none py-4 flex-1 overflow-y-auto">
-        <li><a href="/admin-resources/pages/admin.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4"><i class="fa-solid fa-house w-5 text-center"></i> Inicio</a></li>
-        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Inventario</li>
-        <li><a href="/admin-resources/pages/panels/productos.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i> Productos</a></li>
-        <li><a href="/admin-resources/pages/panels/stock.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-warehouse w-5 text-center"></i> Stock</a></li>
-        <li><a href="/admin-resources/pages/panels/categorias.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-layer-group w-5 text-center"></i> Categorías</a></li>
-        <li><a href="/admin-resources/pages/panels/marcas.html" class="flex items-center px-6 py-3.5 text-white bg-white/10 border-l-4 border-accent transition-colors gap-4"><i class="fa-solid fa-tags w-5 text-center"></i> Marcas</a></li>
-        <li><a href="/admin-resources/pages/panels/cajas.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-box w-5 text-center"></i> Cajas</a></li>
-        <li><a href="/admin-resources/pages/panels/unidadesTamano.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-ruler w-5 text-center"></i> Unidades de Tamaño</a></li>
-        <li><a href="/admin-resources/pages/panels/unidadesVolumen.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-flask w-5 text-center"></i> Unidades de Volumen</a></li>
-        <li class="px-6 pt-6 pb-2 text-xs uppercase tracking-wider text-white/50 font-bold">Administración</li>
-        <li><a href="/admin-resources/pages/panels/usuarios.html" class="flex items-center px-6 py-3.5 text-white/80 hover:bg-white/10 hover:text-white transition-colors gap-4 border-l-4 border-transparent hover:border-accent"><i class="fa-solid fa-users w-5 text-center"></i> Usuarios</a></li>
-      </ul>
-    </aside>
-
-    <!-- Main -->
+<!-- Main -->
     <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 lg:ml-[260px]">
 
       <header class="h-[70px] bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm sticky top-0 z-[900]">
@@ -209,6 +174,7 @@
   <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
   <!-- Sesión + sidebar móvil + logout -->
+  <script src="/admin-resources/scripts/sidebarLoader.js"></script>
   <script src="/admin-resources/scripts/sessionManager.js"></script>
 
   <!-- Control del panel -->

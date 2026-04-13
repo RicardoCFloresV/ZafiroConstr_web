@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)",
+      "Bash(grep -l \"sidebar-overlay\\\\|<aside id=\\\\\"sidebar\\\\\"\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)",
+      "Bash(grep -c \"sidebarLoader\\\\|sessionManager\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)",
+      "Bash(node -e ':*)",
+      "Bash(perl --version)",
+      "Bash(perl -e ':*)",
+      "Bash(grep -c \"<aside\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)",
+      "Bash(grep -c \"sidebarLoader.js\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)"
+    ]
+  }
+}
