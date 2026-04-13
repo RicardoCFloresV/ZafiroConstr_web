@@ -1177,8 +1177,19 @@ BEGIN
     WHERE caja_id=@caja_id AND producto_id=@producto_id;
     IF @actual < @delta THROW 54007,'Stock insuficiente para remover.',1;
 
-    UPDATE cajas_detalles SET stock = stock - @delta
-    WHERE caja_id=@caja_id AND producto_id=@producto_id;
+    DECLARE @nuevo INT = @actual - @delta;
+
+    IF @nuevo = 0
+    BEGIN
+      -- Limpieza: eliminar el detalle cuando el stock resultante es 0
+      DELETE FROM cajas_detalles
+      WHERE caja_id=@caja_id AND producto_id=@producto_id;
+    END
+    ELSE
+    BEGIN
+      UPDATE cajas_detalles SET stock = @nuevo
+      WHERE caja_id=@caja_id AND producto_id=@producto_id;
+    END
 
     COMMIT;
     SELECT detalle_id, caja_id, producto_id, stock
@@ -1205,8 +1216,17 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM cajas_detalles WHERE detalle_id=@detalle_id AND producto_id=@producto_id)
       THROW 54010,'La relación entre el detalle de stock y el producto no existe.',1;
 
-    UPDATE cajas_detalles SET stock=@stock
-    WHERE detalle_id=@detalle_id AND producto_id=@producto_id;
+    IF @stock = 0
+    BEGIN
+      -- Limpieza: eliminar el detalle cuando se ajusta a 0
+      DELETE FROM cajas_detalles
+      WHERE detalle_id=@detalle_id AND producto_id=@producto_id;
+    END
+    ELSE
+    BEGIN
+      UPDATE cajas_detalles SET stock=@stock
+      WHERE detalle_id=@detalle_id AND producto_id=@producto_id;
+    END
 
     COMMIT;
     SELECT d.detalle_id, c.etiqueta, d.producto_id, d.stock
@@ -1246,9 +1266,19 @@ BEGIN
     IF @actual IS NULL THROW 54021,'No existe stock del producto en la caja de origen.',1;
     IF @actual < @cantidad THROW 54022,'Stock insuficiente en la caja de origen.',1;
 
-    -- Perform the move
-    UPDATE cajas_detalles SET stock = stock - @cantidad
-    WHERE caja_id=@caja_origen AND producto_id=@producto_id;
+    DECLARE @nuevoOrigen INT = @actual - @cantidad;
+
+    -- Perform the move (limpieza del origen si queda en 0)
+    IF @nuevoOrigen = 0
+    BEGIN
+      DELETE FROM cajas_detalles
+      WHERE caja_id=@caja_origen AND producto_id=@producto_id;
+    END
+    ELSE
+    BEGIN
+      UPDATE cajas_detalles SET stock = @nuevoOrigen
+      WHERE caja_id=@caja_origen AND producto_id=@producto_id;
+    END
 
     MERGE INTO cajas_detalles WITH (HOLDLOCK) AS target
     USING (SELECT @caja_destino AS caja_id, @producto_id AS producto_id, @cantidad AS cantidad) AS source
