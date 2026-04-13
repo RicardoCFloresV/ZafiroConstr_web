@@ -29,6 +29,7 @@ BEGIN
   SET NOCOUNT ON;
   SELECT log_id, fecha, origen, mensaje FROM logs ORDER BY fecha DESC;
 END;
+GO
 
 --get_logs_by_origen + @origen = log_id, fecha, origen, mensaje
 CREATE OR ALTER PROCEDURE get_logs_by_origen
@@ -353,6 +354,7 @@ BEGIN
     THROW;
   END CATCH
 END;
+GO
 
 
 
@@ -544,6 +546,7 @@ BEGIN
   SET NOCOUNT ON;
   SELECT marca_id, nombre FROM marcas WHERE estado=1 ORDER BY nombre;
 END;
+GO
 
 -- marcas_get_by_id + @marca_id = marca_id, nombre
 CREATE OR ALTER PROCEDURE marcas_get_by_id

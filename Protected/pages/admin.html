@@ -1,170 +1,175 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zafiro Home - Panel Administrador</title>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zafiro Home — Panel Administrador</title>
 
-  <style>
-    :root{
-      --color-text-light:#fff; --color-primary:rgb(45,71,120); --color-secondary:rgb(100,140,188);
-      --max-width-container:1200px; --spacing-standard:1rem;
-      --font-heading:'Poppins',sans-serif; --font-body:'Open Sans',sans-serif;
-      --color-bg:#f9f9f9; --color-text:#333; --color-accent:#f08a5d; --color-light-bg:#fff;
-      --border-radius:12px; --spacing:1rem; --transition-fast:.3s ease;
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(45, 71, 120)',
+            'primary-dark': 'rgb(30, 48, 82)',
+            secondary: 'rgb(100, 140, 188)',
+            accent: '#f08a5d',
+            'accent-dark': '#d87245',
+            danger: '#a5230c',
+            success: '#16a34a',
+            bg: '#f6f7fb',
+            card: '#ffffff',
+            textMain: '#333333',
+            textMuted: '#737b90',
+          },
+          fontFamily: {
+            body: ['Open Sans', 'sans-serif'],
+            heading: ['Poppins', 'sans-serif'],
+          },
+          boxShadow: {
+            'custom': '0 4px 18px rgba(0, 0, 0, 0.08)',
+            'custom-hover': '0 10px 34px rgba(165, 35, 12, 0.2)', /* Sombra roja sutil de tu diseño original */
+          }
+        }
+      }
     }
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-text);line-height:1.6}
-    h1,h2,h3,h4,h5{font-family:var(--font-heading);color:var(--color-primary);margin-bottom:1rem}
-    a{color:var(--color-primary);text-decoration:none;transition:color var(--transition-fast)}
-    a:hover{color:var(--color-secondary)}
-    .btn{display:inline-block;padding:.75rem 1.5rem;border:none;border-radius:var(--border-radius);
-      background:var(--color-primary);color:var(--color-text-light);font-weight:600;text-transform:uppercase;
-      cursor:pointer;transition:background var(--transition-fast),transform var(--transition-fast)}
-    .btn:hover{background:var(--color-secondary);transform:translateY(-2px)}
-    input,textarea,select{width:100%;padding:.5rem;border:1px solid #ccc;border-radius:var(--border-radius);
-      transition:border-color var(--transition-fast),box-shadow var(--transition-fast);font-family:inherit}
-    input:focus,textarea:focus{outline:none;border-color:var(--color-accent);box-shadow:0 0 0 3px rgba(240,138,93,.25)}
+  </script>
 
-    /* Navbar */
-    .navbar{width:100%}
-    .navbarcontainer{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;
-      background:var(--color-primary);color:var(--color-text-light);min-height:80px;gap:var(--spacing-standard)}
-    .navbar-store-title{display:flex;align-items:center;gap:var(--spacing-standard);color:#fff !important;font-size:2rem}
-    .navbar-logo{margin-right:.5rem}
-
-    /* Header admin */
-    .admin-header{text-align:center;margin-top:2.5rem;padding-bottom:.7rem;border-bottom:3px solid var(--color-accent)}
-    .admin-title{font-size:2.8rem;color:var(--color-primary);letter-spacing:-.04em;text-transform:uppercase;margin-bottom:1.5rem}
-    .admin-intro{max-width:680px;margin:auto;color:#575f7a;font-size:1.08rem}
-
-    /* Sección - título */
-    .section-title{margin-top:3.2rem;text-align:center}
-
-    /* Grid de módulos */
-    .categories-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:2.6rem;margin-top:3rem}
-    @media (max-width:767px){.categories-grid{gap:.95rem}}
-    .category-card{background:var(--color-light-bg);border-radius:var(--border-radius);
-      box-shadow:0 4px 18px rgba(0,0,0,.08);overflow:hidden;width:320px;max-width:97vw;
-      transition:transform .25s,box-shadow .26s}
-    @media (max-width:767px){.category-card{width:auto;min-width:280px}}
-    .category-card:hover{box-shadow:0 10px 34px rgba(165,35,12,.2);transform:translateY(-7px) scale(1.03)}
-    .category-header{padding:.8rem;background:#a5230c;color:#fff;border-bottom:3px solid var(--color-accent);text-align:center}
-    .category-title{font-size:1.4rem;margin:0;font-weight:700}
-    .category-body{padding:2.1rem 1.4rem 2rem;text-align:center}
-    .category-body i{font-size:3rem;color:#a5230c;margin-bottom:.85rem;display:block}
-    .toggle-btn{background:var(--color-primary);border:none;padding:.7rem 1.95rem;color:#fff;font-weight:700;
-      border-radius:var(--border-radius);text-transform:uppercase;letter-spacing:.04em;cursor:pointer;
-      transition:background .25s,transform .18s}
-    .toggle-btn:hover{background:#f08a5d;transform:scale(1.07) translateY(-3px)}
-
-    /* Footer */
-    footer{background:var(--color-primary);color:#fff;padding:2rem var(--spacing);text-align:center;margin-top:4rem}
-  </style>
+  <link rel="stylesheet" href="/admin-resources/css/dashboards.css" />
 </head>
-<body class="page-body">
+<body class="font-body bg-bg text-textMain overflow-x-hidden flex flex-col min-h-screen">
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbarcontainer">
-      <a class="navbar-store-title" href="admin.html">
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=60&h=60&q=80"
-             alt="Zafiro Home" height="40" class="navbar-logo me-2">
-        <span>Zafiro Home</span>
-      </a>
-      <a class="btn" href="/">Ir a la tienda</a>
+  <div class="flex min-h-screen w-full relative flex-1">
+
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 lg:ml-[260px]">
+
+      <header class="h-[70px] bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm sticky top-0 z-[900]">
+        <button id="menu-toggle" class="lg:hidden text-primary text-2xl p-2 focus:outline-none" aria-label="Abrir menú">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="hidden sm:flex items-center gap-6 ml-auto">
+          <div class="flex items-center gap-4">
+            <a href="/admin-resources/pages/admin.html" class="text-primary font-semibold flex items-center gap-2 hover:text-accent transition-colors">
+              <i class="fa-solid fa-house"></i> Inicio
+            </a>
+            <img id="header-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff" alt="Perfil" class="w-10 h-10 rounded-full object-cover shadow-sm">
+            <div class="flex flex-col">
+              <span id="header-username" class="font-bold text-sm leading-tight text-textMain">Cargando…</span>
+              <span id="header-role" class="text-xs text-textMuted">Cargando…</span>
+            </div>
+          </div>
+          <button id="logout-btn" class="bg-danger text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-red-800 transition-colors flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-right-from-bracket"></i> Salir
+          </button>
+        </div>
+
+        <button id="logout-btn-mobile" class="sm:hidden bg-danger text-white px-3 py-1.5 rounded-md font-semibold text-xs hover:bg-red-800 transition-colors ml-auto" aria-label="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </header>
+
+      <main class="p-4 sm:p-8 flex-1 flex flex-col">
+
+        <section id="admin-header" class="bg-primary text-white rounded-xl p-8 sm:p-10 shadow-custom mb-10 text-center flex flex-col items-center justify-center border-b-4 border-accent">
+          <h1 class="font-heading text-3xl sm:text-4xl font-bold mb-3 uppercase tracking-tight">Panel de Administración</h1>
+          <p class="text-blue-200 text-sm sm:text-lg max-w-2xl">Administra marcas, categorías, unidades, tallas, usuarios y productos — todo desde un solo lugar.</p>
+        </section>
+
+        <section class="flex-1">
+          <h2 class="font-heading text-2xl font-bold text-primary mb-6 text-center sm:text-left">Módulos Administrativos</h2>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0">Cajas</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-box text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/cajas.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0">Marcas</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-tags text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/marcas.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0 leading-tight">Categorías y Niveles</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-layer-group text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/categorias.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0 leading-tight">Unidades de Tamaño</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-ruler text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/unidadesTamano.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0 leading-tight">Unidades Volumen</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-balance-scale text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/unidadesVolumen.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0">Usuarios</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-users text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/usuarios.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-xl overflow-hidden shadow-custom hover:shadow-custom-hover transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+              <div class="bg-danger text-white p-4 text-center border-b-[3px] border-accent">
+                <h3 class="font-heading text-xl font-bold m-0 leading-tight">Consulta Productos</h3>
+              </div>
+              <div class="p-6 flex flex-col items-center gap-5 flex-1">
+                <i class="fa-solid fa-search text-5xl text-danger mb-2"></i>
+                <a href="/admin-resources/pages/panels/productos.html" class="mt-auto bg-primary text-white px-6 py-2.5 rounded-md font-bold uppercase tracking-wide hover:bg-accent hover:scale-105 transition-all w-full text-center shadow-sm">Entrar</a>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="bg-primary-dark text-white py-5 px-4 text-center mt-auto">
+        <p class="text-sm text-blue-200">© 2025 Zafiro Home. Todos los derechos reservados.</p>
+      </footer>
+
     </div>
-  </nav>
+  </div>
 
-  <!-- Encabezado -->
-  <section class="admin-panel">
-    <div class="admin-header">
-      <h2 class="admin-title">Panel de Administración</h2>
-      <p class="admin-intro">
-        Administra marcas, categorías, unidades, tallas, usuarios y productos — todo desde un solo lugar.
-      </p>
-    </div>
-
-    <!-- Módulos -->
-    <section class="featured-categories">
-      <h2 class="section-title">Módulos Administrativos</h2>
-      <div class="categories-grid">
-
-        <!-- Cajas -->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Cajas</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-box"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/cajas.html'">Entrar</button>
-          </div>
-        </div>
-
-        <!-- Marcas -->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Marcas</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-tags"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/marcas.html'">Entrar</button>
-          </div>
-        </div>
-
-        <!-- Categorías y Niveles -->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Categorías y Niveles</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-layer-group"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/categorias.html'">Entrar</button>
-          </div>
-        </div>
-
-        <!-- Unidades Tamano -->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Unidades de Tamaño</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-ruler"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/unidadesTamano.html'">Entrar</button>
-          </div>
-        </div>
-
-        <!-- Unidades Volumen-->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Unidades Volumen</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-balance-scale"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/unidadesVolumen.html'">Entrar</button>
-          </div>
-        </div>
-
-        <!-- Usuarios -->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Usuarios</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-users"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/usuarios.html'">Entrar</button>
-          </div>
-        </div>
-
-        <!-- Consulta de Productos -->
-        <div class="category-card">
-          <div class="category-header"><h3 class="category-title">Consulta de Productos</h3></div>
-          <div class="category-body">
-            <i class="fa-solid fa-search"></i>
-            <button class="toggle-btn" onclick="location.href='/admin-resources/pages/panels/productos.html'">Entrar</button>
-          </div>
-        </div>
-
-      </div>
-    </section>
-  </section>
-
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 Zafiro Home. Todos los derechos reservados.</p>
-  </footer>
-
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  
+  <script src="/admin-resources/scripts/sidebarLoader.js"></script>
+  <script src="/admin-resources/scripts/sessionManager.js"></script>
 </body>
 </html>
