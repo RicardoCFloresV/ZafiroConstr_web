@@ -28,9 +28,15 @@
 //   - por_id / por_email → requireAuth
 //   - login_lookup → público (sin auth/admin)
 const express = require('express');
+const bcrypt = require('bcrypt');
 const { db, sql } = require('../../db/dbconnector.js');
 const ValidationService = require('../Validators/validatorService.js');
 const { requireAuth, requireAdmin } = require('./authRouter.js'); // ajusta a authRouter.js si aplica
+
+// Costo bcrypt (10 = buen balance seguridad/velocidad en Node)
+const BCRYPT_ROUNDS = 10;
+// Detecta si un valor ya es un hash bcrypt ($2a$ / $2b$ / $2y$)
+const isBcryptHash = (s) => typeof s === 'string' && /^\$2[aby]\$\d{2}\$/.test(s);
 const {
   InsertRules,
   UpdateRules,
@@ -81,15 +87,25 @@ Router.post('/insert', requireAdmin, async (req, res) => {
     try { tipo = normalizeTipo(B.tipo); }
     catch (e) { return res.status(400).json({ success:false, message: e.message }); }
 
+    // Hash de la contraseña ANTES de persistir. Si ya viene un hash bcrypt
+    // (p.ej. migraciones o seeders), se respeta tal cual.
+    const rawPwd = String(B.contrasena ?? '');
+    if (rawPwd.length < 6) {
+      return res.status(400).json({ success:false, message:'contrasena debe tener al menos 6 caracteres' });
+    }
+    const hashedPwd = isBcryptHash(rawPwd) ? rawPwd : await bcrypt.hash(rawPwd, BCRYPT_ROUNDS);
+
     const params = BuildParams([
       { name:'nombre',      type: sql.NVarChar(100), value: B.nombre },
-      { name:'contrasena',  type: sql.NVarChar(255), value: B.contrasena },
+      { name:'contrasena',  type: sql.NVarChar(255), value: hashedPwd },
       { name:'email',       type: sql.NVarChar(150), value: B.email },
       { name:'tipo',        type: sql.NVarChar(10),  value: tipo }
     ]);
 
     const data = await db.executeProc('usuarios_insert', params);
-    return res.status(201).json({ success:true, message:'Usuario creado', data });
+    // Nunca devolver el hash al cliente
+    const safe = Array.isArray(data) ? data.map(({ contrasena, ...r }) => r) : data;
+    return res.status(201).json({ success:true, message:'Usuario creado', data: safe });
   } catch (err) {
     console.error('usuarios_insert error:', err);
     return res.status(500).json({ success:false, message:'Error al crear el usuario' });

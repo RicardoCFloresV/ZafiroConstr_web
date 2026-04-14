@@ -6,6 +6,11 @@ const bcrypt = require('bcrypt');
 // ajusta la ruta a tu conector
 const { db, sql } = require('../../db/dbconnector.js');
 
+// Costo bcrypt para los upgrades in-place (mismo valor que usuariosRouter)
+const BCRYPT_ROUNDS = 10;
+// Detecta si un string YA es un hash bcrypt (no hay que re-hashearlo)
+const isBcryptHash = (s) => typeof s === 'string' && /^\$2[aby]\$\d{2}\$/.test(s);
+
 const router = express.Router();
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || 'connect.sid';
 
@@ -94,18 +99,45 @@ router.post('/login', [
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
-    log('Comparando password con bcrypt.compare...');
+    // ---- Verificación de contraseña ----
+    // Soporta dos formatos en la BD:
+    //  - bcrypt ($2a/$2b/$2y) -> bcrypt.compare
+    //  - texto plano legacy   -> comparación directa + UPGRADE in-place a bcrypt
+    const stored = String(contrasena);
+    const storedIsHash = isBcryptHash(stored);
+    log('Comparando password. stored es bcrypt?', storedIsHash);
+
     let ok = false;
-    try {
-      ok = await bcrypt.compare(password, contrasena);
-    } catch (cmpErr) {
-      warn('bcrypt.compare lanzó error:', cmpErr && cmpErr.message);
-      // Posible causa: el hash no es bcrypt (texto plano en BD) -> log explícito
-      if (!/^\$2[aby]\$/.test(String(contrasena))) {
-        warn('La contrasena almacenada NO tiene formato bcrypt ($2a/$2b/$2y). Revisa cómo se insertó el usuario.');
+    if (storedIsHash) {
+      try {
+        ok = await bcrypt.compare(password, stored);
+      } catch (cmpErr) {
+        warn('bcrypt.compare lanzó error:', cmpErr && cmpErr.message);
+      }
+    } else {
+      // LEGACY: la contraseña en BD está en texto plano (insert antiguo sin hash).
+      // Permitimos el login si coincide exactamente y a continuación re-escribimos
+      // el campo con un hash bcrypt para que el próximo login pase por la ruta segura.
+      warn('LEGACY plaintext detected para usuario_id=', id, ' — se intentará upgrade a bcrypt.');
+      ok = (stored === String(password));
+      if (ok) {
+        try {
+          const newHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+          await db.queryWithParams(
+            'UPDATE usuarios SET contrasena = @hash WHERE usuario_id = @id',
+            {
+              hash: { type: sql.NVarChar(255), value: newHash },
+              id:   { type: sql.Int,           value: Number(id) }
+            }
+          );
+          log('Upgrade a bcrypt OK para usuario_id=', id);
+        } catch (upErr) {
+          // No bloqueamos el login si el update falla; solo avisamos.
+          console.error(`[auth ${reqId}] Upgrade a bcrypt FALLÓ para usuario_id=${id}:`, upErr);
+        }
       }
     }
-    log('Resultado bcrypt.compare =', ok);
+    log('Resultado comparación =', ok);
 
     if (!ok) {
       warn('401 -> contraseña incorrecta');
