@@ -30,7 +30,7 @@ form.addEventListener('submit', async (event) => {
         if (result.isAdmin) {
           window.location.href = "admin-resources/pages/admin.html";
         } else {
-          window.location.href = "user-resources/pages/miCuenta.html";
+          window.location.href = "user-resources/pages/panel-productos.html";
         }
       }, 500);
 
