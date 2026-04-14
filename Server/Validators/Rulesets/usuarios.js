@@ -26,13 +26,20 @@ const emailRule = {
   custom: v => (emailRegex.test(String(v)) ? true : 'email inválido')
 };
 
+// El SP usuarios_insert/update valida: tipo IN ('Usuario','Admin') (NULL/'' -> 'Usuario').
+// Se aceptan sinónimos y el router los normaliza al enum canónico ('Usuario' | 'Admin').
+const TIPO_ALLOWED = ['Usuario', 'Admin', 'usuario', 'admin', 'user', 'administrador'];
 const tipoRule = {
   required: false,
   type: 'string',
   trim: true,
-  minLength: 3,
-  maxLength: 10,
-  // si tienes un set concreto de roles, reemplaza por: custom: v => (['admin','user'].includes(String(v)) || 'tipo inválido')
+  maxLength: 15,
+  custom: v => {
+    if (v == null) return true;
+    const s = String(v).trim();
+    if (!s) return true; // vacío -> el SP aplica default
+    return TIPO_ALLOWED.includes(s) ? true : "tipo inválido: use 'Usuario' o 'Admin'";
+  }
 };
 
 const idRule = {

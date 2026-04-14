@@ -142,8 +142,13 @@
             <small class="text-muted">Requerida al crear. Dejar vacío para no cambiar.</small>
           </div>
           <div class="mb-3">
-            <label for="tipo" class="form-label">Tipo (opcional)</label>
-            <input type="text" id="tipo" name="tipo" class="form-control" maxlength="10" />
+            <label for="tipo" class="form-label">Tipo</label>
+            <select id="tipo" name="tipo" class="form-control">
+              <option value="">— Usuario (por defecto) —</option>
+              <option value="Usuario">Usuario</option>
+              <option value="Admin">Admin</option>
+            </select>
+            <small class="text-muted">Solo se permite <strong>Usuario</strong> o <strong>Admin</strong>.</small>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>

@@ -50,6 +50,26 @@ function BuildParams(entries) {
   return p;
 }
 
+/**
+ * Normaliza el campo `tipo` al enum aceptado por los SPs de usuarios.
+ * Acepta mayúsculas/minúsculas y sinónimos en inglés:
+ *   '', null, undefined       -> null     (el SP aplicará el default 'Usuario')
+ *   'usuario','user'          -> 'Usuario'
+ *   'admin','administrador'   -> 'Admin'
+ *   cualquier otro valor      -> lanza Error con 400
+ */
+function normalizeTipo(raw) {
+  if (raw == null) return null;
+  const t = String(raw).trim();
+  if (!t) return null;
+  const k = t.toLowerCase();
+  if (k === 'usuario' || k === 'user')            return 'Usuario';
+  if (k === 'admin'   || k === 'administrador')   return 'Admin';
+  const err = new Error("tipo inválido: solo se permite 'Usuario' o 'Admin'");
+  err.status = 400;
+  throw err;
+}
+
 /* ============================== INSERT (auth) ============================== */
 Router.post('/insert', requireAdmin, async (req, res) => {
   try {
@@ -57,11 +77,15 @@ Router.post('/insert', requireAdmin, async (req, res) => {
     const { isValid, errors } = await ValidationService.validateData(B, InsertRules);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (insert)', errors });
 
+    let tipo;
+    try { tipo = normalizeTipo(B.tipo); }
+    catch (e) { return res.status(400).json({ success:false, message: e.message }); }
+
     const params = BuildParams([
       { name:'nombre',      type: sql.NVarChar(100), value: B.nombre },
       { name:'contrasena',  type: sql.NVarChar(255), value: B.contrasena },
       { name:'email',       type: sql.NVarChar(150), value: B.email },
-      { name:'tipo',        type: sql.NVarChar(10),  value: B.tipo ?? null }
+      { name:'tipo',        type: sql.NVarChar(10),  value: tipo }
     ]);
 
     const data = await db.executeProc('usuarios_insert', params);
@@ -79,11 +103,15 @@ Router.post('/update', requireAuth, async (req, res) => {
     const { isValid, errors } = await ValidationService.validateData(B, UpdateRules);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (update)', errors });
 
+    let tipo;
+    try { tipo = normalizeTipo(B.tipo); }
+    catch (e) { return res.status(400).json({ success:false, message: e.message }); }
+
     const params = BuildParams([
       { name:'usuario_id', type: sql.Int,            value: Number(B.usuario_id) },
       { name:'nombre',     type: sql.NVarChar(100),  value: B.nombre },
       { name:'email',      type: sql.NVarChar(150),  value: B.email },
-      { name:'tipo',       type: sql.NVarChar(10),   value: B.tipo ?? null }
+      { name:'tipo',       type: sql.NVarChar(10),   value: tipo }
     ]);
 
     const data = await db.executeProc('usuarios_update', params);
@@ -197,9 +225,16 @@ Router.post('/set_tipo', requireAdmin, async (req, res) => {
     const { isValid, errors } = await ValidationService.validateData(B, SetTipoRules);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (set_tipo)', errors });
 
+    let tipo;
+    try { tipo = normalizeTipo(B.tipo); }
+    catch (e) { return res.status(400).json({ success:false, message: e.message }); }
+    if (tipo == null) {
+      return res.status(400).json({ success:false, message:"tipo es requerido ('Usuario' o 'Admin')" });
+    }
+
     const data = await db.executeProc('usuarios_set_tipo', {
       usuario_id: { type: sql.Int, value: Number(B.usuario_id) },
-      tipo:       { type: sql.NVarChar(10), value: B.tipo }
+      tipo:       { type: sql.NVarChar(10), value: tipo }
     });
 
     return res.status(200).json({ success:true, message:'Tipo de usuario actualizado', data });

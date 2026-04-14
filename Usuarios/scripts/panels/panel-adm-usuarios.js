@@ -273,7 +273,9 @@ function validateUsuario({ usuario_id, nombre, email, contrasena, tipo }, mode) 
   if (!/^([^\s@]+)@([^\s@]+)\.[^\s@]+$/.test(e)) throw new Error("email inválido");
 
   const t = String((tipo ?? "")).trim();
-  if (t && t.length > 10) throw new Error("tipo no puede exceder 10 caracteres");
+  if (t && !["Usuario", "Admin"].includes(t)) {
+    throw new Error("tipo inválido: solo se permite 'Usuario' o 'Admin'");
+  }
 
   const c = String((contrasena ?? "")).trim();
   if (mode === "create" && !c) throw new Error("contrasena es requerida");
