@@ -38,8 +38,21 @@ router.post('/login', [
   body('login').trim().isLength({ min: 1, max: 150 }).withMessage('Usuario o email requerido'),
   body('password').notEmpty().withMessage('Se requiere contraseña').isLength({ min: 6 })
 ], async (req, res) => {
+  // Marcador único por request para correlacionar líneas de log
+  const reqId = `login#${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
+  const log = (...args) => console.log(`[auth ${reqId}]`, ...args);
+  const warn = (...args) => console.warn(`[auth ${reqId}]`, ...args);
+
+  log('--- INICIO /auth/login ---');
+  log('IP:', req.ip, '| UA:', (req.headers['user-agent'] || '').slice(0, 80));
+  log('Content-Type:', req.headers['content-type'] || '(ninguno)');
+  log('Body keys:', Object.keys(req.body || {}));
+  log('login recibido:', JSON.stringify(req.body?.login));
+  log('password length:', (req.body?.password || '').length);
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    warn('422 Validación fallida ->', errors.array());
     return res.status(422).json({
       success: false,
       message: 'Errores de validación',
@@ -50,29 +63,62 @@ router.post('/login', [
   const { login, password } = req.body; // Changed from email to login
 
   try {
+    log('Ejecutando SP buscar_id_para_login con login=', login);
     const rows = await db.executeProc('buscar_id_para_login', {
       login: { type: sql.NVarChar(150), value: login } // Changed parameter name
     });
+    log('SP devolvió', rows?.length || 0, 'fila(s).');
 
     if (!rows?.length) {
+      warn('401 -> usuario no encontrado o inactivo (rows vacío)');
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
-    const { id, contrasena, tipo, nombre } = rows[0] || {};
+    // Log de la primera fila SIN exponer la contraseña en texto plano
+    const rawRow = rows[0] || {};
+    log('Fila[0] keys:', Object.keys(rawRow));
+    log('Fila[0] preview:', {
+      id: rawRow.id,
+      nombre: rawRow.nombre,
+      email: rawRow.email,
+      tipo: rawRow.tipo,
+      estado: rawRow.estado,
+      contrasena_present: rawRow.contrasena != null,
+      contrasena_length: rawRow.contrasena ? String(rawRow.contrasena).length : 0,
+      contrasena_looks_bcrypt: /^\$2[aby]\$/.test(String(rawRow.contrasena || ''))
+    });
+
+    const { id, contrasena, tipo, nombre } = rawRow;
     if (!id || !contrasena || !tipo) {
+      warn('401 -> fila incompleta. id?', !!id, 'contrasena?', !!contrasena, 'tipo?', !!tipo);
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
-    const ok = await bcrypt.compare(password, contrasena);
+    log('Comparando password con bcrypt.compare...');
+    let ok = false;
+    try {
+      ok = await bcrypt.compare(password, contrasena);
+    } catch (cmpErr) {
+      warn('bcrypt.compare lanzó error:', cmpErr && cmpErr.message);
+      // Posible causa: el hash no es bcrypt (texto plano en BD) -> log explícito
+      if (!/^\$2[aby]\$/.test(String(contrasena))) {
+        warn('La contrasena almacenada NO tiene formato bcrypt ($2a/$2b/$2y). Revisa cómo se insertó el usuario.');
+      }
+    }
+    log('Resultado bcrypt.compare =', ok);
+
     if (!ok) {
+      warn('401 -> contraseña incorrecta');
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
     const normTipo = String(tipo).trim().toLowerCase(); // "usuario" | "admin"
     const isUser  = normTipo === 'usuario';
     const isAdmin = normTipo === 'admin';
+    log('Tipo normalizado:', normTipo, '| isUser:', isUser, '| isAdmin:', isAdmin);
 
     await regenerateSession(req);
+    log('Sesión regenerada. sid:', req.sessionID);
 
     req.session.userID   = id;
     req.session.userType = tipo;
@@ -82,12 +128,20 @@ router.post('/login', [
     req.session.isAuth   = req.session.isUser || req.session.isAdmin;
 
     await saveSession(req);
+    log('Sesión guardada. Flags:', {
+      userID: req.session.userID,
+      userType: req.session.userType,
+      isUser: req.session.isUser,
+      isAdmin: req.session.isAdmin,
+      isAuth: req.session.isAuth
+    });
 
     if (isHtmlRequest(req)) {
-      // redirect based on role
+      log('Request HTML -> redirect 303 a', req.session.isAdmin ? ADMIN_HOME : USER_HOME);
       return res.redirect(303, req.session.isAdmin ? ADMIN_HOME : USER_HOME);
     }
 
+    log('200 -> login OK (JSON). --- FIN ---');
     return res.json({
       success: true,
       message: 'Inicio de sesión exitoso.',
@@ -99,7 +153,7 @@ router.post('/login', [
       isAuth: req.session.isAuth === true
     });
   } catch (err) {
-    console.error('Error en el login:', err);
+    console.error(`[auth ${reqId}] Error en el login:`, err);
     return res.status(500).json({ success: false, message: 'Error en el servidor.' });
   }
 });
