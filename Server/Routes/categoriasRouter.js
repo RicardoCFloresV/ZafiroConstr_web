@@ -104,7 +104,7 @@ CategoriasRouter.post('/update', requireAuth, async (req, res) => {
     const data = await db.executeProc('categorias_update', Params);
     return res.status(200).json({ success: true, message: 'Categoría actualizada', data });
   } catch (err) {
-    console.error('categorias_update error:', err);
+    console.log('categorias_update error:', err);
     const mapped = MapSqlErrorToHttp(err);
     if (mapped) return res.status(mapped.code).json({ success: false, message: mapped.message });
     return res.status(500).json({ success: false, message: 'Error al actualizar la categoría' });
