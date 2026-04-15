@@ -94,51 +94,51 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fNombre" class="font-semibold text-textMain text-sm">Nombre</label>
               <input id="fNombre" type="text" placeholder="Buscar por nombre…"
-                class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label class="font-semibold text-textMain text-sm">Precio</label>
-              <div class="flex gap-2 items-center">
+              <div class="flex gap-2 items-center min-w-0">
                 <input id="fPrecioMin" type="number" min="0" step="0.01" placeholder="mín"
-                  class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                  class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
                 <span class="text-textMuted">—</span>
                 <input id="fPrecioMax" type="number" min="0" step="0.01" placeholder="máx"
-                  class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                  class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
               </div>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fCatP" class="font-semibold text-textMain text-sm">Categoría principal</label>
-              <select id="fCatP" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <select id="fCatP" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate"></select>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fCatS" class="font-semibold text-textMain text-sm">Categoría secundaria</label>
-              <select id="fCatS" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <select id="fCatS" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate"></select>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fSubc" class="font-semibold text-textMain text-sm">Subcategoría</label>
-              <select id="fSubc" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <select id="fSubc" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate"></select>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fMarca" class="font-semibold text-textMain text-sm">Marca</label>
-              <select id="fMarca" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <select id="fMarca" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate"></select>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fSize" class="font-semibold text-textMain text-sm">Unidad tamaño</label>
-              <select id="fSize" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <select id="fSize" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate"></select>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-0">
               <label for="fUnit" class="font-semibold text-textMain text-sm">Unidad volumen</label>
-              <select id="fUnit" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <select id="fUnit" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate"></select>
             </div>
           </div>
 
@@ -172,13 +172,94 @@
                   <th>Volumen</th>
                   <th>Stock</th>
                   <th>Cajas</th>
-                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="tbProductos">
-                <tr><td colspan="12" class="table-message">Cargando…</td></tr>
+                <tr><td colspan="11" class="table-message">Cargando…</td></tr>
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <!-- ======================= STOCK MODULE ======================= -->
+        <section id="stockSection" class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+            <h2 class="font-heading text-xl font-bold text-primary m-0 flex items-center gap-2">
+              <i class="fa-solid fa-warehouse"></i> Gestión de Stock
+            </h2>
+            <p class="text-xs text-textMuted">Solo productos activos. Agregar o retirar stock por caja.</p>
+          </div>
+
+          <!-- Selector de producto (solo activos) -->
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 mb-5">
+            <div class="min-w-0">
+              <label for="stkProductoSel" class="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-1">Producto (activos)</label>
+              <select id="stkProductoSel" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white truncate">
+                <option value="">— Selecciona un producto —</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button id="btnStkRefrescar" class="bg-primary-dark text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-sm" title="Refrescar stock del producto">
+                <i class="fa-solid fa-rotate"></i> <span class="hidden sm:inline">Refrescar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Producto seleccionado -->
+          <div id="stkProductoBox" class="hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 p-4 bg-bg rounded-lg border border-gray-200">
+              <div class="min-w-0">
+                <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Producto seleccionado</div>
+                <h3 id="stkProdNombre" class="font-heading text-lg font-bold text-primary m-0 truncate">—</h3>
+                <div class="text-sm text-textMuted">
+                  ID: <span id="stkProdId" class="font-semibold text-textMain">—</span>
+                  <span class="mx-2">·</span>
+                  Marca: <span id="stkProdMarca" class="font-semibold text-textMain">—</span>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2 sm:gap-3">
+                <button id="btnOpenAddStock" class="bg-success text-white px-4 py-2.5 rounded-md font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                  <i class="fa-solid fa-plus"></i> Agregar
+                </button>
+                <button id="btnOpenRemoveStock" class="bg-danger text-white px-4 py-2.5 rounded-md font-semibold hover:bg-red-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                  <i class="fa-solid fa-minus"></i> Retirar
+                </button>
+              </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <div class="rounded-lg border border-gray-200 p-4 bg-bg">
+                <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Stock total</div>
+                <div class="text-3xl font-heading font-bold text-primary mt-1" id="stkStockTotal">0</div>
+              </div>
+              <div class="rounded-lg border border-gray-200 p-4 bg-bg">
+                <div class="text-xs uppercase tracking-wider text-textMuted font-bold">Cajas con stock</div>
+                <div class="text-3xl font-heading font-bold text-primary mt-1" id="stkCajasCount">0</div>
+              </div>
+            </div>
+
+            <!-- Detalles por caja -->
+            <div class="table-wrap overflow-x-auto">
+              <table class="productos-table" id="tblStkDetalles">
+                <thead>
+                  <tr>
+                    <th>Detalle</th>
+                    <th>Caja</th>
+                    <th>Etiqueta</th>
+                    <th>Stock</th>
+                  </tr>
+                </thead>
+                <tbody id="tbStkDetalles">
+                  <tr><td colspan="4" class="table-message">Selecciona un producto para ver su stock.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="stkPlaceholder" class="text-center text-textMuted italic py-10">
+            <i class="fa-solid fa-boxes-stacked text-4xl mb-2 block text-gray-300"></i>
+            Selecciona un producto activo para gestionar su stock.
           </div>
         </section>
 
@@ -354,59 +435,70 @@
   </div>
 
   <!-- ============================================================== -->
-  <!-- MODAL: STOCK                                                    -->
+  <!-- MODAL: AGREGAR STOCK                                            -->
   <!-- ============================================================== -->
-  <div class="modal" id="modalStock" aria-hidden="true" role="dialog">
-    <div class="modal-dialog modal-lg">
-      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" id="closeModalStock" aria-label="Cerrar">
+  <div class="modal" id="modalAddStock" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" data-close-modal="modalAddStock" aria-label="Cerrar">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <h3 class="font-heading text-xl font-bold text-primary mb-1 flex items-center gap-2">
-        <i class="fa-solid fa-boxes-stacked"></i> Stock
-      </h3>
-      <p class="text-sm text-textMuted mb-4">Producto: <span id="stockProdName" class="font-semibold text-textMain"></span></p>
+      <div class="text-success text-4xl mb-3"><i class="fa-solid fa-circle-plus"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-1">Agregar stock</h3>
+      <p class="text-textMuted text-sm mb-5">Producto: <span id="addProdName" class="font-semibold text-textMain"></span></p>
 
-      <input type="hidden" id="stockProdId" />
-
-      <div class="mb-5">
-        <h4 class="font-heading font-bold text-primary text-sm uppercase tracking-wide mb-2">
-          <i class="fa-solid fa-list"></i> Detalles actuales
-        </h4>
-        <div id="stockDetalles" class="max-h-56 overflow-auto"><p class="text-textMuted text-sm italic">Sin datos.</p></div>
-        <p class="text-sm text-textMuted mt-2">Stock total: <strong id="stockTotal" class="text-textMain">0</strong></p>
-      </div>
-
-      <hr class="border-gray-200 mb-5">
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div class="bg-green-50 rounded-lg p-4">
-          <h4 class="font-heading font-bold text-green-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-plus"></i> Agregar
-          </h4>
-          <label class="font-semibold text-textMain text-xs">Caja</label>
-          <select id="sAddCaja" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1 mb-2"></select>
-          <label class="font-semibold text-textMain text-xs">Cantidad</label>
-          <input id="sAddQty" type="number" min="1" step="1"
-            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1">
-          <button type="button" id="btnAddStock" class="mt-3 w-full bg-success text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+      <form id="formAddStock" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="addCajaSelect">Caja</label>
+          <select id="addCajaSelect" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione una caja…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="addDelta">Cantidad a agregar</label>
+          <input type="number" id="addDelta" min="1" step="1" placeholder="Ej. 10"
+            class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button type="button" data-close-modal="modalAddStock" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-auto">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-success text-white hover:bg-green-700 transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
             <i class="fa-solid fa-plus"></i> Agregar
           </button>
         </div>
+      </form>
+    </div>
+  </div>
 
-        <div class="bg-red-50 rounded-lg p-4">
-          <h4 class="font-heading font-bold text-danger text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-circle-minus"></i> Retirar
-          </h4>
-          <label class="font-semibold text-textMain text-xs">Caja</label>
-          <select id="sRemCaja" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1 mb-2"></select>
-          <label class="font-semibold text-textMain text-xs">Cantidad</label>
-          <input id="sRemQty" type="number" min="1" step="1"
-            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1">
-          <button type="button" id="btnRemStock" class="mt-3 w-full bg-danger text-white px-4 py-2 rounded-md font-semibold hover:bg-red-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+  <!-- ============================================================== -->
+  <!-- MODAL: RETIRAR STOCK                                            -->
+  <!-- ============================================================== -->
+  <div class="modal" id="modalRemoveStock" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" data-close-modal="modalRemoveStock" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-danger text-4xl mb-3"><i class="fa-solid fa-circle-minus"></i></div>
+      <h3 class="font-heading text-xl font-bold text-textMain mb-1">Retirar stock</h3>
+      <p class="text-textMuted text-sm mb-5">Producto: <span id="remProdName" class="font-semibold text-textMain"></span></p>
+
+      <form id="formRemoveStock" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="removeCajaSelect">Caja</label>
+          <select id="removeCajaSelect" class="w-full min-w-0 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <option value="">Seleccione una caja…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-textMain mb-1" for="removeDelta">Cantidad a retirar</label>
+          <input type="number" id="removeDelta" min="1" step="1" placeholder="Ej. 5"
+            class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button type="button" data-close-modal="modalRemoveStock" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-auto">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-danger text-white hover:bg-red-800 transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
             <i class="fa-solid fa-minus"></i> Retirar
           </button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 

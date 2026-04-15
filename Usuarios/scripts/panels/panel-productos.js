@@ -158,9 +158,37 @@ function paintAllSelects() {
   fillSelect($("pSize"),  state.cat.sizes,  "size_id",                  "nombre", { emptyLabel: "— Selecciona —" });
   fillSelect($("pCaja"),  state.cat.cajas,  "caja_id",                  "etiqueta",{ emptyLabel: "— Selecciona —" });
 
-  // Modal stock
-  fillSelect($("sAddCaja"), state.cat.cajas, "caja_id", "etiqueta", { emptyLabel: "— Selecciona —" });
-  fillSelect($("sRemCaja"), state.cat.cajas, "caja_id", "etiqueta", { emptyLabel: "— Selecciona —" });
+  // Modales de stock (Agregar / Retirar) — sólo cajas con id
+  fillSelect($("addCajaSelect"),    state.cat.cajas, "caja_id", "etiqueta", { emptyLabel: "— Selecciona una caja —" });
+  fillSelect($("removeCajaSelect"), state.cat.cajas, "caja_id", "etiqueta", { emptyLabel: "— Selecciona una caja —" });
+
+  // Selector de producto del módulo de stock (sólo activos)
+  paintStockProductoSelect();
+}
+
+/* Rellena el select del módulo Stock con productos activos (estado == 1) */
+function paintStockProductoSelect() {
+  const sel = $("stkProductoSel");
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = "";
+  const opEmpty = document.createElement("option");
+  opEmpty.value = ""; opEmpty.textContent = "— Selecciona un producto —";
+  sel.appendChild(opEmpty);
+
+  const activos = state.productos
+    .filter(p => Number(p.estado) === 1)
+    .slice()
+    .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
+
+  for (const p of activos) {
+    const op = document.createElement("option");
+    op.value = String(p.producto_id);
+    const brand = p.brand_nombre ? ` · ${p.brand_nombre}` : "";
+    op.textContent = `#${p.producto_id} — ${p.nombre}${brand}`;
+    sel.appendChild(op);
+  }
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
 }
 
 /* =========================================================
@@ -181,14 +209,30 @@ async function loadProductos() {
     for (const row of asArray(resp)) {
       const pid = row.producto_id ?? row.id;
       if (pid == null) continue;
-      if (!state.cajasPorProducto.has(pid)) state.cajasPorProducto.set(pid, []);
-      state.cajasPorProducto.get(pid).push({
-        caja_id: row.caja_id ?? null,
-        etiqueta: row.etiqueta ?? row.caja ?? "?",
+      const key = Number(pid);
+      if (!state.cajasPorProducto.has(key)) state.cajasPorProducto.set(key, []);
+      state.cajasPorProducto.get(key).push({
+        caja_id: row.caja_id != null ? Number(row.caja_id) : null,
+        etiqueta: row.caja_etiqueta || row.etiqueta || null,
         stock: Number(row.stock ?? 0)
       });
     }
   } catch { /* silencioso — si el endpoint no rinde, seguimos con stock_total */ }
+}
+
+/* Renderiza badges de cajas al estilo del panel admin */
+function renderCajasBadges(producto_id) {
+  const list = state.cajasPorProducto.get(Number(producto_id)) || [];
+  if (!list.length) {
+    return `<span class="text-textMuted text-xs italic">Sin asignar</span>`;
+  }
+  return list.map(c => {
+    const eti = c.etiqueta ? escapeHtml(c.etiqueta) : `Caja ${c.caja_id ?? "?"}`;
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 mr-1 mb-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20" title="Caja #${c.caja_id ?? "?"}">
+              <i class="fa-solid fa-box"></i> ${eti}
+              <span class="ml-1 px-1.5 rounded bg-primary text-white">${Number(c.stock || 0)}</span>
+            </span>`;
+  }).join("");
 }
 
 /* =========================================================
@@ -232,16 +276,13 @@ function renderTabla() {
   $("lblCount").textContent = String(rows.length);
 
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="12" class="muted" style="text-align:center;padding:1.5rem">Sin resultados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="table-message">Sin resultados.</td></tr>`;
     return;
   }
   const frag = document.createDocumentFragment();
   for (const p of rows) {
-    const cajas = state.cajasPorProducto.get(p.producto_id) || [];
-    const chips = cajas.length
-      ? cajas.map(c => `<span class="chip">${c.etiqueta}${c.stock != null ? ` · ${c.stock}` : ""}</span>`).join("")
-      : `<span class="muted">—</span>`;
-    const stockClass = Number(p.stock_total) > 0 ? "badge badge-stock" : "badge badge-empty";
+    const stockN = Number(p.stock_total || 0);
+    const stockCls = stockN > 0 ? "text-success" : "text-textMuted";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -254,15 +295,8 @@ function renderTabla() {
       <td>${escapeHtml(p.subcategoria_nombre)}</td>
       <td>${escapeHtml(p.size_nombre)} ${escapeHtml(p.size_value ?? "")}</td>
       <td>${escapeHtml(p.unit_nombre)} ${p.unit_value ?? ""}</td>
-      <td><span class="${stockClass}">${p.stock_total ?? 0}</span></td>
-      <td>${chips}</td>
-      <td>
-        <div class="actions-col">
-          <button class="btn btn-outline btn-sm js-stock" data-id="${p.producto_id}" data-nombre="${escapeHtml(p.nombre)}">
-            <i class="fa-solid fa-boxes-stacked"></i> Stock
-          </button>
-        </div>
-      </td>`;
+      <td><span class="font-bold ${stockCls}">${stockN}</span></td>
+      <td>${renderCajasBadges(p.producto_id)}</td>`;
     frag.appendChild(tr);
   }
   tbody.innerHTML = "";
@@ -473,75 +507,135 @@ async function submitQuick(ev) {
 }
 
 /* =========================================================
-   Modal Stock
+   Módulo Stock — selector, detalle y modales add/remove
    ========================================================= */
-async function openStockModal(producto_id, nombre) {
-  $("stockProdId").value = String(producto_id);
-  $("stockProdName").textContent = nombre || `#${producto_id}`;
-  $("sAddQty").value = "";
-  $("sRemQty").value = "";
-  await refreshStockDetalles(producto_id);
-  openModal("modalStock");
+const stk = {
+  producto_id: null,
+  producto: null,
+  detalles: []   // [{ detalle_id, caja_id, etiqueta, stock }]
+};
+
+function stkFindProducto(id) {
+  const n = Number(id);
+  return state.productos.find(p => Number(p.producto_id) === n) || null;
 }
 
-async function refreshStockDetalles(producto_id) {
-  const cont = $("stockDetalles");
-  cont.innerHTML = `<p class="muted">Cargando…</p>`;
+function stkReset() {
+  stk.producto_id = null;
+  stk.producto = null;
+  stk.detalles = [];
+  $("stkProductoBox")?.classList.add("hidden");
+  $("stkPlaceholder")?.classList.remove("hidden");
+}
+
+async function stkOnProductoChange() {
+  const id = Number($("stkProductoSel").value || 0);
+  if (!id) { stkReset(); return; }
+  const p = stkFindProducto(id);
+  if (!p || Number(p.estado) !== 1) {
+    toast("Producto no disponible (inactivo)", "error", "fa-circle-exclamation");
+    $("stkProductoSel").value = "";
+    stkReset();
+    return;
+  }
+  stk.producto_id = id;
+  stk.producto = p;
+  // Pinta datos básicos
+  $("stkProdNombre").textContent = p.nombre || `#${id}`;
+  $("stkProdId").textContent     = String(id);
+  $("stkProdMarca").textContent  = p.brand_nombre || "—";
+  $("stkPlaceholder")?.classList.add("hidden");
+  $("stkProductoBox")?.classList.remove("hidden");
+  await stkRefreshDetalles();
+}
+
+async function stkRefreshDetalles() {
+  const id = stk.producto_id;
+  const tbody = $("tbStkDetalles");
+  if (!id || !tbody) return;
+  tbody.innerHTML = `<tr><td colspan="4" class="table-message">Cargando…</td></tr>`;
   try {
-    const resp = assertOk(await stockAPI.getByProducto(producto_id));
+    const resp = assertOk(await stockAPI.getByProducto(id));
     const rows = asArray(resp);
+    stk.detalles = rows.map(r => ({
+      detalle_id: r.detalle_id ?? null,
+      caja_id:    r.caja_id ?? null,
+      etiqueta:   r.etiqueta ?? r.caja_etiqueta ?? null,
+      stock:      Number(r.stock || 0)
+    }));
     let total = 0;
-    if (!rows.length) {
-      cont.innerHTML = `<p class="muted">Sin registros de stock.</p>`;
+    let conStock = 0;
+    if (!stk.detalles.length) {
+      tbody.innerHTML = `<tr><td colspan="4" class="table-message">Sin registros de stock.</td></tr>`;
     } else {
-      cont.innerHTML = "";
-      for (const r of rows) {
-        total += Number(r.stock || 0);
-        const row = document.createElement("div");
-        row.className = "stock-detalle-row";
-        row.innerHTML = `
-          <span class="badge">${escapeHtml(r.etiqueta || "?")}</span>
-          <span class="stock-val">${r.stock ?? 0}</span>
-          <span class="muted" style="flex:1">detalle #${r.detalle_id ?? ""}</span>`;
-        cont.appendChild(row);
+      tbody.innerHTML = "";
+      for (const r of stk.detalles) {
+        total += r.stock;
+        if (r.stock > 0) conStock++;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.detalle_id ?? "—"}</td>
+          <td>${r.caja_id ?? "—"}</td>
+          <td>${escapeHtml(r.etiqueta || `Caja ${r.caja_id ?? "?"}`)}</td>
+          <td><span class="font-bold ${r.stock > 0 ? "text-success" : "text-textMuted"}">${r.stock}</span></td>`;
+        tbody.appendChild(tr);
       }
     }
-    $("stockTotal").textContent = String(total);
+    $("stkStockTotal").textContent = String(total);
+    $("stkCajasCount").textContent = String(conStock);
   } catch (e) {
-    cont.innerHTML = `<p class="muted">No se pudo cargar el stock.</p>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="table-message">No se pudo cargar el stock.</td></tr>`;
     toast(errMsg(e), "error", "fa-circle-exclamation");
   }
 }
 
-async function doStockAdd() {
-  const producto_id = Number($("stockProdId").value);
-  const caja_id = Number($("sAddCaja").value);
-  const delta = Number($("sAddQty").value);
+function stkOpenAddModal() {
+  if (!stk.producto_id) return toast("Selecciona un producto primero", "error", "fa-circle-exclamation");
+  $("addProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
+  $("addCajaSelect").value = "";
+  $("addDelta").value = "";
+  openModal("modalAddStock");
+}
+function stkOpenRemoveModal() {
+  if (!stk.producto_id) return toast("Selecciona un producto primero", "error", "fa-circle-exclamation");
+  $("remProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
+  $("removeCajaSelect").value = "";
+  $("removeDelta").value = "";
+  openModal("modalRemoveStock");
+}
+
+async function stkSubmitAdd(ev) {
+  ev.preventDefault();
+  const producto_id = stk.producto_id;
+  if (!producto_id) return;
+  const caja_id = Number($("addCajaSelect").value || 0);
+  const delta = Number($("addDelta").value);
   if (!caja_id) return toast("Selecciona una caja", "error", "fa-circle-exclamation");
   if (!Number.isInteger(delta) || delta <= 0) return toast("Cantidad inválida", "error", "fa-circle-exclamation");
   try {
     assertOk(await stockAPI.add({ caja_id, producto_id, delta }));
     toast("Stock agregado", "success", "fa-circle-check");
-    $("sAddQty").value = "";
-    await refreshStockDetalles(producto_id);
-    // Refrescar tabla principal para stock_total / cajas
+    closeModal("modalAddStock");
+    await stkRefreshDetalles();
     await loadProductos();
     renderTabla();
   } catch (e) {
     toast(errMsg(e), "error", "fa-circle-exclamation");
   }
 }
-async function doStockRem() {
-  const producto_id = Number($("stockProdId").value);
-  const caja_id = Number($("sRemCaja").value);
-  const delta = Number($("sRemQty").value);
+async function stkSubmitRemove(ev) {
+  ev.preventDefault();
+  const producto_id = stk.producto_id;
+  if (!producto_id) return;
+  const caja_id = Number($("removeCajaSelect").value || 0);
+  const delta = Number($("removeDelta").value);
   if (!caja_id) return toast("Selecciona una caja", "error", "fa-circle-exclamation");
   if (!Number.isInteger(delta) || delta <= 0) return toast("Cantidad inválida", "error", "fa-circle-exclamation");
   try {
     assertOk(await stockAPI.remove({ caja_id, producto_id, delta }));
     toast("Stock retirado", "success", "fa-circle-check");
-    $("sRemQty").value = "";
-    await refreshStockDetalles(producto_id);
+    closeModal("modalRemoveStock");
+    await stkRefreshDetalles();
     await loadProductos();
     renderTabla();
   } catch (e) {
@@ -566,19 +660,11 @@ function wire() {
   $("btnReset")?.addEventListener("click", resetFiltros);
   $("btnRecargar")?.addEventListener("click", async () => {
     await loadCatalogos();
-    paintAllSelects();
     await loadProductos();
+    paintAllSelects();
+    paintStockProductoSelect();
     renderTabla();
     toast("Datos actualizados", "info", "fa-arrows-rotate");
-  });
-
-  // Acciones en filas (delegación)
-  $("tbProductos")?.addEventListener("click", (ev) => {
-    const btn = ev.target.closest(".js-stock");
-    if (!btn) return;
-    const id = Number(btn.dataset.id);
-    const nombre = btn.dataset.nombre || "";
-    openStockModal(id, nombre);
   });
 
   // Agregar producto
@@ -595,10 +681,22 @@ function wire() {
   $("cancelQuick")?.addEventListener("click", () => closeModal("modalQuick"));
   $("formQuick")?.addEventListener("submit", submitQuick);
 
-  // Stock modal
-  $("closeModalStock")?.addEventListener("click", () => closeModal("modalStock"));
-  $("btnAddStock")?.addEventListener("click", doStockAdd);
-  $("btnRemStock")?.addEventListener("click", doStockRem);
+  // Módulo Stock
+  $("stkProductoSel")?.addEventListener("change", stkOnProductoChange);
+  $("btnStkRefrescar")?.addEventListener("click", async () => {
+    if (!stk.producto_id) { toast("Selecciona un producto primero", "info", "fa-circle-info"); return; }
+    await stkRefreshDetalles();
+    toast("Stock refrescado", "info", "fa-arrows-rotate");
+  });
+  $("btnOpenAddStock")?.addEventListener("click", stkOpenAddModal);
+  $("btnOpenRemoveStock")?.addEventListener("click", stkOpenRemoveModal);
+  $("formAddStock")?.addEventListener("submit", stkSubmitAdd);
+  $("formRemoveStock")?.addEventListener("submit", stkSubmitRemove);
+
+  // Cierre genérico de modales: botones con data-close-modal
+  document.querySelectorAll("[data-close-modal]").forEach(btn => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
+  });
 
   // Cerrar modales al click fuera
   document.querySelectorAll(".modal").forEach(m => {
@@ -612,6 +710,7 @@ async function init() {
     await loadCatalogos();
     paintAllSelects();
     await loadProductos();
+    paintStockProductoSelect(); // refresca el select del módulo stock (depende de state.productos)
     renderTabla();
   } catch (e) {
     toast(errMsg(e), "error", "fa-circle-exclamation");
