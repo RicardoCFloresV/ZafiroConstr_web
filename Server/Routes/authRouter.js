@@ -16,7 +16,7 @@ const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || 'connect.sid';
 
 // Updated paths:
 const ADMIN_HOME = '/admin-resources/pages/admin.html';
-const USER_HOME  = '/user-resources/pages/miCuenta.html';
+const USER_HOME  = '/user-resources/pages/panel-productos.html';
 
 // ---------------------------
 // Helpers 
