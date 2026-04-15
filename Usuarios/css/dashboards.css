@@ -1,0 +1,138 @@
+/* ============================================================
+   Zafiro Home — Dashboards CSS (overrides for Tailwind UI)
+   Versión de /user-resources (misma base que /admin-resources).
+   Solo lo necesario: visibilidad de modales, toasts y
+   ajustes a tablas. El layout y los colores se manejan
+   por completo con Tailwind (CDN).
+   ============================================================ */
+
+/* -------- Modales (clase .modal + .show) -------------------- */
+.modal{
+  display:none !important;
+  position:fixed; inset:0; z-index:2000;
+  background:rgba(17,24,39,.55);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  padding:2rem 1rem;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.modal.show{
+  display:flex !important;
+  justify-content:center;
+  animation:zh-fade .18s ease-out;
+}
+.modal .modal-dialog{
+  background:#fff;
+  border-radius:.75rem;
+  width:100%;
+  max-width:560px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  padding:1.5rem 1.5rem 1.25rem;
+  position:relative;
+  margin:auto;
+  animation:zh-pop .22s ease-out;
+}
+.modal .modal-dialog.modal-lg{ max-width:720px; }
+.modal .modal-dialog.modal-xl{ max-width:960px; }
+body.modal-open{ overflow:hidden; }
+@keyframes zh-fade{from{opacity:0}to{opacity:1}}
+@keyframes zh-pop{
+  from{opacity:0;transform:translateY(-12px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* -------- Toasts -------------------------------------------- */
+#toastContainer{
+  position:fixed; right:1.25rem; bottom:1.25rem; z-index:9999;
+  display:flex; flex-direction:column; gap:.6rem;
+  max-width:90vw;
+}
+.toast{
+  display:flex; align-items:center; gap:.6rem;
+  background:#fff;
+  border-left:4px solid rgb(45,71,120);
+  color:#333;
+  padding:.75rem 1rem;
+  border-radius:.5rem;
+  box-shadow:0 6px 18px rgba(45,71,120,.18);
+  font:600 .875rem/1.2 "Open Sans",sans-serif;
+  min-width:220px;
+  transition:opacity .18s, transform .18s;
+}
+.toast i{font-size:1.05rem}
+.toast-success{border-left-color:#16a34a;color:#15803d}
+.toast-error  {border-left-color:#a5230c;color:#a5230c}
+.toast-info   {border-left-color:rgb(100,140,188);color:rgb(45,71,120)}
+.toast-warning{border-left-color:#f08a5d;color:#b45309}
+
+/* -------- Tabla de productos (panel-productos.html) --------- */
+.productos-table{ width:100%; border-collapse:separate; border-spacing:0; }
+.productos-table th, .productos-table td{
+  padding:.7rem .85rem;
+  border-bottom:1px solid #f1f3f7;
+  text-align:left;
+  font-size:.9rem;
+  vertical-align:middle;
+}
+.productos-table th{
+  background:#f6f7fb;
+  color:#737b90;
+  font-weight:600;
+  position:sticky; top:0;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+.productos-table tbody tr:hover{ background:#f6f7fb }
+.table-wrap{
+  max-height:560px; overflow:auto;
+  border:1px solid #e5e7eb;
+  border-radius:.75rem;
+}
+
+.table-message{
+  text-align:center;
+  color:#737b90;
+  padding:1.25rem !important;
+  font-style:italic;
+}
+
+/* Estado pill */
+.pill{
+  display:inline-block;
+  padding:.18rem .55rem;
+  border-radius:9999px;
+  font:600 .72rem/1.4 "Open Sans",sans-serif;
+}
+.pill-on { background:#dcfce7; color:#15803d }
+.pill-off{ background:#fee2e2; color:#a5230c }
+
+/* Chip (para caja labels) */
+.chip{
+  display:inline-block;
+  padding:.15rem .55rem;
+  margin:.1rem .15rem;
+  border-radius:9999px;
+  background:#e0e7ff;
+  color:#1e3a8a;
+  font-size:.72rem;
+  font-weight:600;
+}
+
+/* Required star */
+.required-star{ color:#a5230c; margin-left:.1rem }
+
+/* Stock detalle row */
+.stock-detalle-row{
+  display:flex; gap:.6rem; align-items:center;
+  padding:.55rem .75rem;
+  border:1px solid #e5e7eb;
+  border-radius:.5rem;
+  margin-bottom:.5rem;
+  background:#fafafa;
+}
+.stock-detalle-row .stock-val{
+  font-weight:700; min-width:3rem; text-align:center;
+  color:rgb(45,71,120);
+}

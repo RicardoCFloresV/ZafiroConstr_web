@@ -3,260 +3,353 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Panel de Productos</title>
+  <title>Zafiro Home — Panel de Productos</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/user-resources/css/admin.css" />
-  <style>
-    #toastContainer{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:3000}
-    .toast{min-width:260px;max-width:420px;padding:12px 14px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.12);font:14px/1.35 "Open Sans",system-ui,Arial,sans-serif;display:flex;align-items:center;gap:8px;animation:slidein .2s ease-out}
-    .toast-success{background:#e7f6ec;color:#145a32}.toast-error{background:#fdecea;color:#7a2e2e}.toast-info{background:#eef2ff;color:#1f3a8a}
-    @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .filters-grid{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;align-items:flex-end}
-    @media (max-width:1100px){.filters-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}}
-    @media (max-width:640px){.filters-grid{grid-template-columns:1fr}}
-    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px}
-    @media (max-width:640px){.form-grid{grid-template-columns:1fr}}
-    .muted{color:#6b7280}
-    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:#eef2ff;color:#1f3a8a}
-    .badge-stock{background:#dcfce7;color:#166534}
-    .badge-empty{background:#fee2e2;color:#991b1b}
-    .select-row{display:flex;gap:6px;align-items:stretch}
-    .select-row select{flex:1}
-    .select-row .btn-add{padding:.45rem .7rem;font-size:.9rem}
-    .price-range{display:flex;gap:6px;align-items:center}
-    .price-range input{width:100%}
-    .modal-dialog-wide{width:min(96vw,820px)!important}
-    .productos-table{width:100%;border-collapse:separate;border-spacing:0}
-    .productos-table th,.productos-table td{padding:.6rem .75rem;border-bottom:1px solid var(--color-border);text-align:left;font-size:.92rem}
-    .productos-table th{background:#f3f4f6;position:sticky;top:0;cursor:pointer;user-select:none}
-    .productos-table tbody tr:hover{background:#fafafa}
-    .table-wrap{max-height:520px;overflow:auto;border:1px solid var(--color-border);border-radius:12px}
-    .chip{display:inline-block;padding:2px 8px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:12px;margin:1px 2px}
-    .actions-col{display:flex;gap:4px;flex-wrap:wrap}
-    .btn-sm{padding:.35rem .55rem;font-size:.85rem}
-    .hint{font-size:.8rem;color:#6b7280;margin-top:.25rem}
-    .required-star{color:#dc2626;margin-left:2px}
-    .stock-detalle-row{display:flex;gap:8px;align-items:center;padding:.5rem;border:1px solid var(--color-border);border-radius:8px;margin-bottom:.5rem;background:#fafafa}
-    .stock-detalle-row .stock-val{font-weight:600;min-width:48px;text-align:center}
-  </style>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(45, 71, 120)', 'primary-dark': 'rgb(30, 48, 82)',
+            secondary: 'rgb(100, 140, 188)', accent: '#f08a5d', 'accent-dark': '#d87245',
+            danger: '#a5230c', success: '#16a34a',
+            bg: '#f6f7fb', card: '#ffffff', textMain: '#333333', textMuted: '#737b90',
+          },
+          fontFamily: { body: ['Open Sans', 'sans-serif'], heading: ['Poppins', 'sans-serif'] },
+          boxShadow: {
+            'custom': '0 4px 12px rgba(45, 71, 120, 0.35)',
+            'custom-hover': '0 10px 20px rgba(45, 71, 120, 0.1)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="/user-resources/css/dashboards.css" />
 </head>
-<body class="page-body">
-  <div class="top-banner">Panel de Productos</div>
+<body class="font-body bg-bg text-textMain overflow-x-hidden">
 
-  <nav class="navbar">
-    <div class="navbarcontainer">
-      <a class="navbar-store-title" href="#"><span>Zafiro Home</span></a>
-      <a class="btn btn-outline" href="/user-resources/pages/admin.html"><i class="fa-solid fa-arrow-left"></i> Regresar</a>
-    </div>
-  </nav>
+  <div class="flex min-h-screen w-full relative">
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300">
 
-  <main class="main-content">
-
-    <!-- ========== FILTROS ========== -->
-    <section class="card">
-      <div class="card-head">
-        <h2><i class="fa-solid fa-filter"></i> Filtros</h2>
-        <div class="actions">
-          <button id="btnReset" class="btn btn-outline"><i class="fa-solid fa-rotate"></i> Limpiar</button>
-          <button id="btnRecargar" class="btn btn-outline-info"><i class="fa-solid fa-arrows-rotate"></i> Recargar datos</button>
-          <button id="btnNuevoProducto" class="btn"><i class="fa-solid fa-plus"></i> Agregar producto</button>
-        </div>
-      </div>
-
-      <div class="filters-grid" style="margin-top:.5rem">
-        <div>
-          <label class="form-label" for="fNombre">Nombre</label>
-          <input id="fNombre" type="text" class="form-control" placeholder="Buscar por nombre…" />
-        </div>
-        <div>
-          <label class="form-label">Precio</label>
-          <div class="price-range">
-            <input id="fPrecioMin" type="number" min="0" step="0.01" class="form-control" placeholder="min" />
-            <span class="muted">—</span>
-            <input id="fPrecioMax" type="number" min="0" step="0.01" class="form-control" placeholder="max" />
+      <!-- ======================= HEADER (solo logout) ======================= -->
+      <header class="h-[70px] bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm sticky top-0 z-[900]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-sm">
+            <i class="fa-solid fa-boxes-stacked"></i>
           </div>
+          <span class="font-heading font-bold text-primary text-lg">Zafiro Home</span>
         </div>
-        <div>
-          <label class="form-label" for="fCatP">Categoría principal</label>
-          <select id="fCatP" class="form-control"></select>
+
+        <div class="hidden sm:flex items-center gap-6 ml-auto">
+          <div class="flex items-center gap-4">
+            <img id="header-avatar"
+              src="https://ui-avatars.com/api/?name=Usuario&background=2d4778&color=fff"
+              alt="Perfil" class="w-10 h-10 rounded-full object-cover shadow-sm">
+            <div class="flex flex-col leading-tight">
+              <span id="header-username" class="font-bold text-sm text-textMain">Cargando…</span>
+              <span id="header-role" class="text-xs text-textMuted">Cargando…</span>
+            </div>
+          </div>
+          <button id="logout-btn" class="bg-danger text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-red-800 transition-colors flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-right-from-bracket"></i> Salir
+          </button>
         </div>
-        <div>
-          <label class="form-label" for="fCatS">Categoría secundaria</label>
-          <select id="fCatS" class="form-control"></select>
-        </div>
-        <div>
-          <label class="form-label" for="fSubc">Subcategoría</label>
-          <select id="fSubc" class="form-control"></select>
-        </div>
-        <div>
-          <label class="form-label" for="fMarca">Marca</label>
-          <select id="fMarca" class="form-control"></select>
-        </div>
-        <div>
-          <label class="form-label" for="fSize">Unidad tamaño</label>
-          <select id="fSize" class="form-control"></select>
-        </div>
-        <div>
-          <label class="form-label" for="fUnit">Unidad volumen</label>
-          <select id="fUnit" class="form-control"></select>
-        </div>
-      </div>
-      <p class="hint"><i class="fa-solid fa-circle-info"></i> Los filtros se aplican en el navegador sobre un único <code>get_all</code>. No hay recarga por red.</p>
-    </section>
 
-    <!-- ========== RESULTADOS ========== -->
-    <section class="card">
-      <div class="card-head">
-        <h2><i class="fa-solid fa-boxes-stacked"></i> Resultados <span id="lblCount" class="badge">0</span></h2>
-      </div>
-      <div class="table-wrap">
-        <table class="productos-table" id="tblProductos">
-          <thead>
-            <tr>
-              <th data-k="producto_id">ID</th>
-              <th data-k="nombre">Nombre</th>
-              <th data-k="precio">Precio</th>
-              <th data-k="brand_nombre">Marca</th>
-              <th data-k="categoria_principal_nombre">Cat. P</th>
-              <th data-k="categoria_secundaria_nombre">Cat. S</th>
-              <th data-k="subcategoria_nombre">Subcat</th>
-              <th>Tamaño</th>
-              <th>Volumen</th>
-              <th data-k="stock_total">Stock</th>
-              <th>Cajas</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbProductos">
-            <tr><td colspan="12" class="muted" style="text-align:center;padding:1.5rem">Cargando…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+        <button id="logout-btn-mobile" class="sm:hidden bg-danger text-white px-3 py-1.5 rounded-md font-semibold text-xs hover:bg-red-800 transition-colors ml-auto" aria-label="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </header>
 
-  <footer><p>© 2025 Zafiro Home. Todos los derechos reservados.</p></footer>
+      <!-- ======================= MAIN ======================= -->
+      <main class="p-4 sm:p-8 flex-1">
 
-  <!-- ============================================================== -->
-  <!-- MODAL: AGREGAR PRODUCTO (con caja y stock forzosos)            -->
-  <!-- ============================================================== -->
-  <div class="modal" id="modalProducto" aria-hidden="true" role="dialog">
-    <div class="modal-dialog modal-dialog-wide" role="document">
-      <div class="modal-header">
-        <h3 class="modal-title">Agregar producto</h3>
-        <button class="btn-close" id="closeModalProducto" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="modal-body">
-        <form id="formProducto" novalidate>
-          <div class="form-grid">
-            <div>
-              <label class="form-label">Nombre<span class="required-star">*</span></label>
-              <input id="pNombre" class="form-control" maxlength="100" required />
-            </div>
-            <div>
-              <label class="form-label">Precio<span class="required-star">*</span></label>
-              <input id="pPrecio" type="number" step="0.01" min="0" class="form-control" required />
-            </div>
-            <div style="grid-column:1/-1">
-              <label class="form-label">Descripción</label>
-              <textarea id="pDesc" class="form-control" rows="2" maxlength="255"></textarea>
-            </div>
+        <!-- HERO -->
+        <section id="admin-header" class="bg-primary text-white rounded-xl p-6 sm:p-8 shadow-custom mb-6 border-b-4 border-accent">
+          <h1 class="font-heading text-2xl sm:text-3xl font-bold mb-2">Panel de Productos</h1>
+          <p class="text-blue-200 text-sm sm:text-base">Buscar, consultar stock por caja y agregar productos al inventario.</p>
+        </section>
 
-            <div>
-              <label class="form-label">Categoría principal<span class="required-star">*</span></label>
-              <div class="select-row">
-                <select id="pCatP" required></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="catp"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div>
-              <label class="form-label">Categoría secundaria</label>
-              <div class="select-row">
-                <select id="pCatS"></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="cats"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div>
-              <label class="form-label">Subcategoría</label>
-              <div class="select-row">
-                <select id="pSubc"></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="subc"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div>
-              <label class="form-label">Marca<span class="required-star">*</span></label>
-              <div class="select-row">
-                <select id="pMarca" required></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="brand"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-
-            <div>
-              <label class="form-label">Unidad volumen<span class="required-star">*</span></label>
-              <div class="select-row">
-                <select id="pUnit" required></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="unit"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div>
-              <label class="form-label">Valor volumen<span class="required-star">*</span></label>
-              <input id="pUnitVal" type="number" step="0.01" min="0" class="form-control" required />
-            </div>
-
-            <div>
-              <label class="form-label">Unidad tamaño<span class="required-star">*</span></label>
-              <div class="select-row">
-                <select id="pSize" required></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="size"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div>
-              <label class="form-label">Valor tamaño<span class="required-star">*</span></label>
-              <input id="pSizeVal" class="form-control" maxlength="50" required />
-            </div>
-
-            <div>
-              <label class="form-label">Caja<span class="required-star">*</span></label>
-              <div class="select-row">
-                <select id="pCaja" required></select>
-                <button type="button" class="btn btn-outline btn-add" data-add="caja"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div>
-              <label class="form-label">Stock inicial<span class="required-star">*</span></label>
-              <input id="pStock" type="number" min="0" step="1" class="form-control" required />
-              <p class="hint">Obligatorio. Se creará el producto dentro de la caja seleccionada con esta cantidad.</p>
+        <!-- FILTROS -->
+        <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
+            <h2 class="font-heading text-xl font-bold text-primary m-0 flex items-center gap-2">
+              <i class="fa-solid fa-filter"></i> Filtros
+            </h2>
+            <div class="flex flex-wrap gap-2 sm:gap-3">
+              <button id="btnReset" class="bg-white border border-secondary text-secondary px-4 py-2.5 rounded-md font-semibold hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-rotate"></i> <span class="hidden sm:inline">Limpiar</span>
+              </button>
+              <button id="btnRecargar" class="bg-secondary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-[#5579a3] transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-arrows-rotate"></i> <span class="hidden sm:inline">Recargar</span>
+              </button>
+              <button id="btnNuevoProducto" class="bg-primary text-white px-4 py-2.5 rounded-md font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Agregar producto</span><span class="sm:hidden">Nuevo</span>
+              </button>
             </div>
           </div>
 
-          <div class="modal-actions" style="margin-top:1rem">
-            <button type="button" class="btn btn-outline" id="cancelProducto">Cancelar</button>
-            <button type="submit" class="btn" id="saveProducto"><i class="fa-solid fa-floppy-disk"></i> Crear producto</button>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label for="fNombre" class="font-semibold text-textMain text-sm">Nombre</label>
+              <input id="fNombre" type="text" placeholder="Buscar por nombre…"
+                class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="font-semibold text-textMain text-sm">Precio</label>
+              <div class="flex gap-2 items-center">
+                <input id="fPrecioMin" type="number" min="0" step="0.01" placeholder="mín"
+                  class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+                <span class="text-textMuted">—</span>
+                <input id="fPrecioMax" type="number" min="0" step="0.01" placeholder="máx"
+                  class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="fCatP" class="font-semibold text-textMain text-sm">Categoría principal</label>
+              <select id="fCatP" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="fCatS" class="font-semibold text-textMain text-sm">Categoría secundaria</label>
+              <select id="fCatS" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="fSubc" class="font-semibold text-textMain text-sm">Subcategoría</label>
+              <select id="fSubc" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="fMarca" class="font-semibold text-textMain text-sm">Marca</label>
+              <select id="fMarca" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="fSize" class="font-semibold text-textMain text-sm">Unidad tamaño</label>
+              <select id="fSize" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="fUnit" class="font-semibold text-textMain text-sm">Unidad volumen</label>
+              <select id="fUnit" class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+            </div>
           </div>
-        </form>
-      </div>
+
+          <p class="text-xs text-textMuted mt-4 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-info"></i>
+            Los filtros se aplican en el navegador sobre un único <code class="bg-gray-100 px-1.5 py-0.5 rounded text-[11px]">get_all</code>. Sin recarga por red.
+          </p>
+        </section>
+
+        <!-- RESULTADOS -->
+        <section class="bg-card rounded-xl p-5 sm:p-6 shadow-custom mb-6">
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="font-heading text-xl font-bold text-primary m-0 flex items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked"></i> Resultados
+              <span id="lblCount" class="ml-2 inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-secondary/10 text-secondary text-xs font-semibold">0</span>
+            </h2>
+          </div>
+
+          <div class="table-wrap overflow-x-auto">
+            <table class="productos-table" id="tblProductos">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                  <th>Marca</th>
+                  <th>Cat. P</th>
+                  <th>Cat. S</th>
+                  <th>Subcat</th>
+                  <th>Tamaño</th>
+                  <th>Volumen</th>
+                  <th>Stock</th>
+                  <th>Cajas</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbProductos">
+                <tr><td colspan="12" class="table-message">Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
     </div>
   </div>
 
   <!-- ============================================================== -->
-  <!-- MODAL: AGREGAR CATÁLOGO (quick-insert genérico)                 -->
+  <!-- MODAL: AGREGAR PRODUCTO                                        -->
+  <!-- ============================================================== -->
+  <div class="modal" id="modalProducto" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-xl">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" id="closeModalProducto" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="font-heading text-xl font-bold text-primary mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-plus"></i> Agregar producto
+      </h3>
+
+      <form id="formProducto" novalidate class="flex flex-col gap-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="pNombre" class="font-semibold text-textMain text-sm">Nombre <span class="required-star">*</span></label>
+            <input id="pNombre" maxlength="100" required
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pPrecio" class="font-semibold text-textMain text-sm">Precio <span class="required-star">*</span></label>
+            <input id="pPrecio" type="number" step="0.01" min="0" required
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+          </div>
+          <div class="md:col-span-2 flex flex-col gap-1.5">
+            <label for="pDesc" class="font-semibold text-textMain text-sm">Descripción</label>
+            <textarea id="pDesc" rows="2" maxlength="255"
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></textarea>
+          </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <h4 class="font-heading font-bold text-primary text-sm uppercase tracking-wide">Clasificación</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="pCatP" class="font-semibold text-textMain text-sm">Categoría principal <span class="required-star">*</span></label>
+            <div class="flex gap-2">
+              <select id="pCatP" required class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="catp" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pCatS" class="font-semibold text-textMain text-sm">Categoría secundaria</label>
+            <div class="flex gap-2">
+              <select id="pCatS" class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="cats" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pSubc" class="font-semibold text-textMain text-sm">Subcategoría</label>
+            <div class="flex gap-2">
+              <select id="pSubc" class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="subc" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pMarca" class="font-semibold text-textMain text-sm">Marca <span class="required-star">*</span></label>
+            <div class="flex gap-2">
+              <select id="pMarca" required class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="brand" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <h4 class="font-heading font-bold text-primary text-sm uppercase tracking-wide">Medidas</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="pUnit" class="font-semibold text-textMain text-sm">Unidad volumen <span class="required-star">*</span></label>
+            <div class="flex gap-2">
+              <select id="pUnit" required class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="unit" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pUnitVal" class="font-semibold text-textMain text-sm">Valor volumen <span class="required-star">*</span></label>
+            <input id="pUnitVal" type="number" step="0.01" min="0" required
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pSize" class="font-semibold text-textMain text-sm">Unidad tamaño <span class="required-star">*</span></label>
+            <div class="flex gap-2">
+              <select id="pSize" required class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="size" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pSizeVal" class="font-semibold text-textMain text-sm">Valor tamaño <span class="required-star">*</span></label>
+            <input id="pSizeVal" maxlength="50" required
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+          </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <h4 class="font-heading font-bold text-primary text-sm uppercase tracking-wide">Caja y stock inicial (obligatorios)</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="pCaja" class="font-semibold text-textMain text-sm">Caja <span class="required-star">*</span></label>
+            <div class="flex gap-2">
+              <select id="pCaja" required class="flex-1 p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white"></select>
+              <button type="button" data-add="caja" class="px-3 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" title="Agregar nueva">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="pStock" class="font-semibold text-textMain text-sm">Stock inicial <span class="required-star">*</span></label>
+            <input id="pStock" type="number" min="0" step="1" required
+              class="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white">
+            <small class="text-textMuted text-xs">El producto se crea dentro de la caja con esta cantidad.</small>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-2">
+          <button type="button" id="cancelProducto" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" id="saveProducto" class="px-5 py-2.5 rounded-md font-semibold bg-primary text-white hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-floppy-disk"></i> Crear producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: QUICK INSERT                                             -->
   <!-- ============================================================== -->
   <div class="modal" id="modalQuick" aria-hidden="true" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-header">
-        <h3 class="modal-title" id="quickTitle">Agregar</h3>
-        <button class="btn-close" id="closeModalQuick"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="modal-body">
-        <form id="formQuick" novalidate>
-          <div id="quickFields"></div>
-          <div class="modal-actions" style="margin-top:1rem">
-            <button type="button" class="btn btn-outline" id="cancelQuick">Cancelar</button>
-            <button type="submit" class="btn"><i class="fa-solid fa-plus"></i> Crear</button>
-          </div>
-        </form>
-      </div>
+    <div class="modal-dialog">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" id="closeModalQuick" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 id="quickTitle" class="font-heading text-xl font-bold text-primary mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-plus"></i> Agregar
+      </h3>
+
+      <form id="formQuick" novalidate class="flex flex-col gap-4">
+        <div id="quickFields" class="flex flex-col gap-3"></div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-2">
+          <button type="button" id="cancelQuick" class="px-5 py-2.5 rounded-md font-semibold text-textMuted border border-gray-300 hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-md font-semibold bg-primary text-white hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-plus"></i> Crear
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -264,45 +357,103 @@
   <!-- MODAL: STOCK                                                    -->
   <!-- ============================================================== -->
   <div class="modal" id="modalStock" aria-hidden="true" role="dialog">
-    <div class="modal-dialog modal-dialog-wide" role="document">
-      <div class="modal-header">
-        <h3 class="modal-title">Stock — <span id="stockProdName" class="badge"></span></h3>
-        <button class="btn-close" id="closeModalStock"><i class="fa-solid fa-xmark"></i></button>
+    <div class="modal-dialog modal-lg">
+      <button class="absolute top-4 right-4 text-textMuted hover:text-danger transition-colors text-xl" id="closeModalStock" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="font-heading text-xl font-bold text-primary mb-1 flex items-center gap-2">
+        <i class="fa-solid fa-boxes-stacked"></i> Stock
+      </h3>
+      <p class="text-sm text-textMuted mb-4">Producto: <span id="stockProdName" class="font-semibold text-textMain"></span></p>
+
+      <input type="hidden" id="stockProdId" />
+
+      <div class="mb-5">
+        <h4 class="font-heading font-bold text-primary text-sm uppercase tracking-wide mb-2">
+          <i class="fa-solid fa-list"></i> Detalles actuales
+        </h4>
+        <div id="stockDetalles" class="max-h-56 overflow-auto"><p class="text-textMuted text-sm italic">Sin datos.</p></div>
+        <p class="text-sm text-textMuted mt-2">Stock total: <strong id="stockTotal" class="text-textMain">0</strong></p>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="stockProdId" />
-        <div style="margin-bottom:1rem">
-          <h4 style="margin-bottom:.5rem"><i class="fa-solid fa-list"></i> Detalles actuales</h4>
-          <div id="stockDetalles"><p class="muted">Sin datos.</p></div>
-          <p class="hint">Stock total: <strong id="stockTotal">0</strong></p>
+
+      <hr class="border-gray-200 mb-5">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-green-50 rounded-lg p-4">
+          <h4 class="font-heading font-bold text-green-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-circle-plus"></i> Agregar
+          </h4>
+          <label class="font-semibold text-textMain text-xs">Caja</label>
+          <select id="sAddCaja" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1 mb-2"></select>
+          <label class="font-semibold text-textMain text-xs">Cantidad</label>
+          <input id="sAddQty" type="number" min="1" step="1"
+            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1">
+          <button type="button" id="btnAddStock" class="mt-3 w-full bg-success text-white px-4 py-2 rounded-md font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-plus"></i> Agregar
+          </button>
         </div>
 
-        <hr />
-
-        <div class="form-grid" style="margin-top:1rem">
-          <div>
-            <h4><i class="fa-solid fa-circle-plus"></i> Agregar</h4>
-            <label class="form-label">Caja</label>
-            <select id="sAddCaja"></select>
-            <label class="form-label" style="margin-top:.5rem">Cantidad</label>
-            <input id="sAddQty" type="number" min="1" step="1" class="form-control" />
-            <button type="button" class="btn mt-2" id="btnAddStock" style="margin-top:.5rem"><i class="fa-solid fa-plus"></i> Agregar</button>
-          </div>
-          <div>
-            <h4><i class="fa-solid fa-circle-minus"></i> Retirar</h4>
-            <label class="form-label">Caja</label>
-            <select id="sRemCaja"></select>
-            <label class="form-label" style="margin-top:.5rem">Cantidad</label>
-            <input id="sRemQty" type="number" min="1" step="1" class="form-control" />
-            <button type="button" class="btn btn-outline mt-2" id="btnRemStock" style="margin-top:.5rem"><i class="fa-solid fa-minus"></i> Retirar</button>
-          </div>
+        <div class="bg-red-50 rounded-lg p-4">
+          <h4 class="font-heading font-bold text-danger text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-circle-minus"></i> Retirar
+          </h4>
+          <label class="font-semibold text-textMain text-xs">Caja</label>
+          <select id="sRemCaja" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1 mb-2"></select>
+          <label class="font-semibold text-textMain text-xs">Cantidad</label>
+          <input id="sRemQty" type="number" min="1" step="1"
+            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white mt-1">
+          <button type="button" id="btnRemStock" class="mt-3 w-full bg-danger text-white px-4 py-2 rounded-md font-semibold hover:bg-red-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-minus"></i> Retirar
+          </button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Toasts -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- ================= Sesión: solo populate header + logout ================= -->
+  <script>
+    (async function initSession() {
+      const userEl  = document.getElementById('header-username');
+      const roleEl  = document.getElementById('header-role');
+      const avatarEl= document.getElementById('header-avatar');
+      try {
+        const r = await fetch('/auth/status', { credentials: 'same-origin', cache: 'no-store' });
+        const data = await r.json();
+        if (!data || !data.authenticated) {
+          window.location.href = '/index.html';
+          return;
+        }
+        const name = data.username || 'Usuario';
+        const role = data.isAdmin ? 'Administrador' : (data.userType || 'Usuario');
+        if (userEl) userEl.textContent = name;
+        if (roleEl) roleEl.textContent = role;
+        if (avatarEl) {
+          avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d4778&color=fff`;
+          avatarEl.alt = name;
+        }
+      } catch (err) {
+        console.warn('[session] no se pudo obtener /auth/status:', err);
+      }
+    })();
+
+    async function doLogout() {
+      try {
+        await fetch('/auth/logout', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) { console.warn('[logout] error:', e); }
+      window.location.href = '/index.html';
+    }
+    document.getElementById('logout-btn')?.addEventListener('click', doLogout);
+    document.getElementById('logout-btn-mobile')?.addEventListener('click', doLogout);
+  </script>
+
+  <!-- Control del panel (filtros, agregar producto, stock) -->
   <script type="module" src="/user-resources/scripts/panels/panel-productos.js"></script>
 </body>
 </html>
