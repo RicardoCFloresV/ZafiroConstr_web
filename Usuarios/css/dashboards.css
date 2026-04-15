@@ -136,3 +136,9 @@ body.modal-open{ overflow:hidden; }
   font-weight:700; min-width:3rem; text-align:center;
   color:rgb(45,71,120);
 }
+
+input, select, textarea {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box; /* Asegura que el padding no sume al ancho total */
+}
