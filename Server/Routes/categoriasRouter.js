@@ -92,6 +92,7 @@ CategoriasRouter.post('/insert', requireAuth, async (req, res) => {
 CategoriasRouter.post('/update', requireAuth, async (req, res) => {
   try {
     const Body = req.body;
+    console.log('Received update request:', Body);
     const { isValid, errors } = await ValidationService.validateData(Body, UpdateRules);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (update)', errors });
 
