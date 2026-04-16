@@ -59,8 +59,9 @@ const cajasAPI = {
                 'Content-Type': 'application/json'
             }
         });
+        console.log('cajas_remove response:', response); // Debug log
         return await response.json();
-        console
+        
     }
 };
 
