@@ -1,24 +1,12 @@
 // Server/routes/cajasRouter.js
 // Rutas para Cajas — basadas en stored procedures existentes:
-//   - cajas_insert(@letra VARCHAR(2), @cara TINYINT, @nivel TINYINT)
-//       -> RETURNS: [ { caja_id, letra, cara, nivel, etiqueta } ]
-//   - cajas_update(@caja_id INT, @letra VARCHAR(2), @cara TINYINT, @nivel TINYINT)
-//       -> RETURNS: [ { caja_id, letra, cara, nivel, etiqueta } ]
-//   - cajas_delete(@caja_id INT)
-//       -> RETURNS: none
-//   - cajas_get_all()
-//       -> RETURNS: [ { caja_id, letra, cara, nivel, etiqueta }, ... ]
-//   - cajas_get_list()
-//       -> RETURNS: [ { caja_id, etiqueta }, ... ]
-//   - cajas_get_by_id(@caja_id INT)
-//       -> RETURNS: [ { caja_id, letra, cara, nivel, etiqueta } ]  (0 o 1 fila)
 
 const express = require('express');
-const { db, sql } = require('../../db/dbconnector.js'); // DB pool + types  :contentReference[oaicite:7]{index=7}
-const ValidationService = require('../Validators/validatorService.js');         // validateData   :contentReference[oaicite:8]{index=8}
+const { db, sql } = require('../../db/dbconnector.js'); // DB pool + types
+const ValidationService = require('../Validators/validatorService.js'); // validateData
 const { InsertRules, UpdateRules, DeleteRules, PorIdRules } = require('../Validators/Rulesets/cajas.js');
 
-const { requireAuth, requireAdmin } = require('./authRouter.js'); // middlewares  :contentReference[oaicite:9]{index=9}
+const { requireAuth, requireAdmin } = require('./authRouter.js'); // middlewares
 
 const CajasRouter = express.Router();
 
@@ -31,8 +19,6 @@ function BuildParams(entries) {
 
 /* ============================================================================
    POST /cajas/insert  (Auth requerido)
-   SP: cajas_insert(@letra VARCHAR(2), @cara TINYINT, @nivel TINYINT)
-   RETURNS: [ { caja_id, letra, cara, nivel, etiqueta } ]
 ============================================================================ */
 CajasRouter.post('/insert', requireAuth, async (req, res) => {
   try {
@@ -51,19 +37,19 @@ CajasRouter.post('/insert', requireAuth, async (req, res) => {
     const data = await db.executeProc('cajas_insert', params);
     return res.status(201).json({
       success: true,
-      message: 'Caja creada',
+      message: 'Caja creada exitosamente',
       data
     });
   } catch (err) {
     console.error('cajas_insert error:', err);
-    return res.status(500).json({ success: false, message: 'Error al crear la caja' });
+    // Extracción dinámica del mensaje de error
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al crear la caja';
+    return res.status(400).json({ success: false, message: mensajeError });
   }
 });
 
 /* ============================================================================
    POST /cajas/update  (Auth requerido)
-   SP: cajas_update(@caja_id INT, @letra VARCHAR(2), @cara TINYINT, @nivel TINYINT)
-   RETURNS: [ { caja_id, letra, cara, nivel, etiqueta } ]
 ============================================================================ */
 CajasRouter.post('/update', requireAuth, async (req, res) => {
   try {
@@ -88,22 +74,20 @@ CajasRouter.post('/update', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('cajas_update error:', err);
-    return res.status(500).json({ success: false, message: 'Error al actualizar la caja' });
+    // Extracción dinámica del mensaje de error
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al actualizar la caja';
+    return res.status(400).json({ success: false, message: mensajeError });
   }
 });
 
 
 /* ============================================================================
    DELETE /cajas/delete/:id  (Solo Admin)
-   SP: cajas_delete(@caja_id INT)
-   RETURNS: none
 ============================================================================ */
 CajasRouter.delete('/delete/:id', requireAdmin, async (req, res) => {
   try {
-    // Extract ID from the URL params instead of req.body
     const cajaId = req.params.id;  
 
-    // Validación básica del ID
     if (!cajaId) {
       return res.status(400).json({ success: false, message: 'ID de caja requerido' });
     }
@@ -114,19 +98,14 @@ CajasRouter.delete('/delete/:id', requireAdmin, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Caja eliminada' });
   } catch (err) {
     console.error('cajas_delete error:', err);
-    
-    // Extraemos el mensaje específico lanzado por el Stored Procedure de SQL Server
+    // Extracción dinámica del mensaje de error
     const mensajeError = err.originalError?.info?.message || err.message || 'Error al eliminar la caja';
-    
-    // Retornamos el mensaje real al frontend (usando 400 Bad Request o 409 Conflict para errores de lógica de negocio)
     return res.status(400).json({ success: false, message: mensajeError });
   }
 });
 
 /* ============================================================================
    GET /cajas/get_all
-   SP: cajas_get_all()
-   RETURNS: [ { caja_id, letra, cara, nivel, etiqueta }, ... ]
 ============================================================================ */
 CajasRouter.get('/get_all', async (_req, res) => {
   try {
@@ -138,14 +117,13 @@ CajasRouter.get('/get_all', async (_req, res) => {
     });
   } catch (err) {
     console.error('cajas_get_all error:', err);
-    return res.status(500).json({ success: false, message: 'Error al listar cajas', data: [] });
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al listar cajas';
+    return res.status(400).json({ success: false, message: mensajeError, data: [] });
   }
 });
 
 /* ============================================================================
    GET /cajas/get_list
-   SP: cajas_get_list()
-   RETURNS: [ { caja_id, etiqueta }, ... ]
 ============================================================================ */
 CajasRouter.get('/get_list', async (_req, res) => {
   try {
@@ -157,14 +135,13 @@ CajasRouter.get('/get_list', async (_req, res) => {
     });
   } catch (err) {
     console.error('cajas_get_list error:', err);
-    return res.status(500).json({ success: false, message: 'Error al listar etiquetas de cajas', data: [] });
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al listar etiquetas de cajas';
+    return res.status(400).json({ success: false, message: mensajeError, data: [] });
   }
 });
 
 /* ============================================================================
    GET /cajas/por_id/:caja_id
-   SP: cajas_get_by_id(@caja_id INT)
-   RETURNS: [ { caja_id, letra, cara, nivel, etiqueta } ] (0 o 1)
 ============================================================================ */
 CajasRouter.get('/por_id/:caja_id', async (req, res) => {
   try {
@@ -182,20 +159,18 @@ CajasRouter.get('/por_id/:caja_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Caja obtenida', data: data[0] });
   } catch (err) {
     console.error('cajas_get_by_id error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener la caja' });
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al obtener la caja';
+    return res.status(400).json({ success: false, message: mensajeError });
   }
 });
 
 /* ============================================================================
    GET /cajas/por_componentes
-   SP: cajas_get_by_components(@letra VARCHAR(2), @cara TINYINT, @nivel TINYINT)
-   RETURNS: [ { caja_id } ] (0 o 1 fila)
 ============================================================================ */
 CajasRouter.get('/por_componentes', async (req, res) => {
   try {
     const { letra, cara, nivel } = req.query;
     
-    // Validaciones - convertir a números
     if (!letra || !cara || !nivel) {
       return res.status(400).json({ 
         success: false, 
@@ -203,7 +178,6 @@ CajasRouter.get('/por_componentes', async (req, res) => {
       });
     }
     
-    // Convertir a números para validación
     const caraNum = Number(cara);
     const nivelNum = Number(nivel);
     
@@ -243,10 +217,8 @@ CajasRouter.get('/por_componentes', async (req, res) => {
     });
   } catch (err) {
     console.error('cajas_get_by_components error:', err);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error al buscar la caja' 
-    });
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al buscar la caja';
+    return res.status(400).json({ success: false, message: mensajeError });
   }
 });
 
