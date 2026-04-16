@@ -1,4 +1,4 @@
-// Server/routes/stockRouter.js
+﻿// Server/routes/stockRouter.js
 // Operaciones de STOCK (mutaciones y consultas por producto/detalle)
 // Stored Procedures usados:
 // - productos_get_stock(@producto_id INT)
@@ -21,6 +21,7 @@ const express = require('express');
 const { db, sql } = require('../../db/dbconnector.js');
 const ValidationService = require('../Validators/validatorService.js');
 const { requireAuth } = require('./authRouter.js'); // cambios de stock requieren auth
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -60,7 +61,8 @@ Router.get('/producto/:producto_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Stock por producto', data });
   } catch (err) {
     console.error('productos_get_stock error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener stock por producto' });
+    const { message, status } = extractDbError(err, 'Error al obtener stock por producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -76,7 +78,8 @@ Router.get('/detalles_por_producto/:producto_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Detalles de cajas por producto', data });
   } catch (err) {
     console.error('cajas_detalles_get_by_producto error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener detalles por producto' });
+    const { message, status } = extractDbError(err, 'Error al obtener detalles por producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -93,7 +96,8 @@ Router.get('/detalle_por_id/:detalle_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Detalle de caja', data: data[0] });
   } catch (err) {
     console.error('cajas_detalles_get_by_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener el detalle' });
+    const { message, status } = extractDbError(err, 'Error al obtener el detalle');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -113,7 +117,8 @@ Router.post('/add', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Stock agregado', data });
   } catch (err) {
     console.error('productos_add_stock error:', err);
-    return res.status(500).json({ success:false, message:'Error al agregar stock' });
+    const { message, status } = extractDbError(err, 'Error al agregar stock');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -132,7 +137,8 @@ Router.post('/remove', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Stock retirado', data });
   } catch (err) {
     console.error('productos_remove_stock error:', err);
-    return res.status(500).json({ success:false, message:'Error al retirar stock' });
+    const { message, status } = extractDbError(err, 'Error al retirar stock');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -151,7 +157,8 @@ Router.post('/set_by_detalle', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Stock ajustado por detalle', data });
   } catch (err) {
     console.error('productos_set_stock_by_detalle error:', err);
-    return res.status(500).json({ success:false, message:'Error al ajustar stock por detalle' });
+    const { message, status } = extractDbError(err, 'Error al ajustar stock por detalle');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -171,7 +178,8 @@ Router.post('/move', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Stock movido', data });
   } catch (err) {
     console.error('productos_move_stock error:', err);
-    return res.status(500).json({ success:false, message:'Error al mover stock' });
+    const { message, status } = extractDbError(err, 'Error al mover stock');
+    return res.status(status).json({ success: false, message });
   }
 });
 

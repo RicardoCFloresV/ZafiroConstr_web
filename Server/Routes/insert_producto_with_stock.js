@@ -1,8 +1,9 @@
-// Server/routes/insert_producto_with_stock.js
+﻿// Server/routes/insert_producto_with_stock.js
 const express = require('express');
 const { db, sql } = require('../../db/dbconnector.js');
 const ValidationService = require('../Validators/validatorService.js');
 const { requireAuth } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -56,7 +57,8 @@ Router.post('/insert_with_stock', requireAuth, async (req, res) => {
     return res.status(201).json({ success: true, message: 'Producto creado con stock inicial', data });
   } catch (err) {
     console.error('producto_insert_with_stock error:', err);
-    return res.status(500).json({ success: false, message: 'Error al crear el producto con stock inicial' });
+    const { message, status } = extractDbError(err, 'Error al crear el producto con stock inicial');
+    return res.status(status).json({ success: false, message });
   }
 });
 

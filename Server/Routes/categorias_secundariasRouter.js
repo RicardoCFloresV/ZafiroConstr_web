@@ -1,4 +1,4 @@
-// Server/routes/categorias_secundariasRouter.js
+﻿// Server/routes/categorias_secundariasRouter.js
 // Stored Procedures usados (con @parámetros y retorno):
 // - categorias_secundarias_insert(@nombre NVARCHAR(100))
 //     -> RETURNS: [ { categoria_secundaria_id, nombre } ]
@@ -24,6 +24,7 @@ const {
 } = require('../Validators/Rulesets/categorias_secundarias.js');
 
 const { requireAuth, requireAdmin } = require('./authRouter.js'); // ajusta si tu archivo es authRouter.js
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -48,7 +49,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success: true, message: 'Categoría secundaria creada', data });
   } catch (err) {
     console.error('categorias_secundarias_insert error:', err);
-    return res.status(500).json({ success: false, message: 'Error al crear la categoría secundaria' });
+    const { message, status } = extractDbError(err, 'Error al crear la categoría secundaria');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -68,7 +70,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Categoría secundaria actualizada', data });
   } catch (err) {
     console.error('categorias_secundarias_update error:', err);
-    return res.status(500).json({ success: false, message: 'Error al actualizar la categoría secundaria' });
+    const { message, status } = extractDbError(err, 'Error al actualizar la categoría secundaria');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -87,7 +90,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Categoría secundaria eliminada' });
   } catch (err) {
     console.error('categorias_secundarias_delete error:', err);
-    return res.status(500).json({ success: false, message: 'Error al eliminar la categoría secundaria' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la categoría secundaria');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -98,7 +102,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado de categorías secundarias', data });
   } catch (err) {
     console.error('categorias_secundarias_get_all error:', err);
-    return res.status(500).json({ success: false, message: 'Error al listar categorías secundarias' });
+    const { message, status } = extractDbError(err, 'Error al listar categorías secundarias');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -109,7 +114,8 @@ Router.get('/get_list', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado simple de categorías secundarias', data });
   } catch (err) {
     console.error('categorias_secundarias_get_list error:', err);
-    return res.status(500).json({ success: false, message: 'Error al listar categorías secundarias (simple)' });
+    const { message, status } = extractDbError(err, 'Error al listar categorías secundarias (simple)');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -130,7 +136,8 @@ Router.get('/por_id/:categoria_secundaria_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Categoría secundaria obtenida', data: data[0] });
   } catch (err) {
     console.error('categorias_secundarias_get_by_id error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener la categoría secundaria' });
+    const { message, status } = extractDbError(err, 'Error al obtener la categoría secundaria');
+    return res.status(status).json({ success: false, message });
   }
 });
 

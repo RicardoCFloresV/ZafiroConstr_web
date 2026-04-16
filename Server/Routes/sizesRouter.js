@@ -1,4 +1,4 @@
-// Server/routes/sizesRouter.js
+﻿// Server/routes/sizesRouter.js
 // Stored procedures (params y retorno esperado):
 // - sizes_insert(@nombre NVARCHAR(50))
 //     -> RETURNS: [ { size_id, nombre } ]
@@ -18,6 +18,7 @@ const { InsertRules, UpdateRules, DeleteRules, PorIdRules } =
   require('../Validators/Rulesets/sizes.js');
 
 const { requireAuth, requireAdmin } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -37,7 +38,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success:true, message:'Talla creada', data });
   } catch (err) {
     console.error('sizes_insert error:', err);
-    return res.status(500).json({ success:false, message:'Error al crear la talla' });
+    const { message, status } = extractDbError(err, 'Error al crear la talla');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -56,7 +58,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Talla actualizada' });
   } catch (err) {
     console.error('sizes_update error:', err);
-    return res.status(500).json({ success:false, message:'Error al actualizar la talla' });
+    const { message, status } = extractDbError(err, 'Error al actualizar la talla');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -72,7 +75,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Talla eliminada' });
   } catch (err) {
     console.error('sizes_delete error:', err);
-    return res.status(500).json({ success:false, message:'Error al eliminar la talla' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la talla');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -83,7 +87,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado de tallas', data });
   } catch (err) {
     console.error('sizes_get_all error:', err);
-    return res.status(500).json({ success:false, message:'Error al listar tallas' });
+    const { message, status } = extractDbError(err, 'Error al listar tallas');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -102,7 +107,8 @@ Router.get('/por_id/:size_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Talla obtenida', data: data[0] });
   } catch (err) {
     console.error('sizes_get_by_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener la talla' });
+    const { message, status } = extractDbError(err, 'Error al obtener la talla');
+    return res.status(status).json({ success: false, message });
   }
 });
 

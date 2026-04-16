@@ -1,4 +1,4 @@
-// Server/routes/usuariosRouter.js
+﻿// Server/routes/usuariosRouter.js
 // Stored Procedures usados (parámetros y retorno esperado):
 //
 // - usuarios_insert(@nombre NVARCHAR(100), @contrasena NVARCHAR(255), @email NVARCHAR(150), @tipo NVARCHAR(10)=NULL)
@@ -32,6 +32,7 @@ const bcrypt = require('bcrypt');
 const { db, sql } = require('../../db/dbconnector.js');
 const ValidationService = require('../Validators/validatorService.js');
 const { requireAuth, requireAdmin } = require('./authRouter.js'); // ajusta a authRouter.js si aplica
+const { extractDbError } = require('../utils/dbError.js');
 
 // Costo bcrypt (10 = buen balance seguridad/velocidad en Node)
 const BCRYPT_ROUNDS = 10;
@@ -108,7 +109,8 @@ Router.post('/insert', requireAdmin, async (req, res) => {
     return res.status(201).json({ success:true, message:'Usuario creado', data: safe });
   } catch (err) {
     console.error('usuarios_insert error:', err);
-    return res.status(500).json({ success:false, message:'Error al crear el usuario' });
+    const { message, status } = extractDbError(err, 'Error al crear el usuario');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -134,7 +136,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Usuario actualizado', data });
   } catch (err) {
     console.error('usuarios_update error:', err);
-    return res.status(500).json({ success:false, message:'Error al actualizar el usuario' });
+    const { message, status } = extractDbError(err, 'Error al actualizar el usuario');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -152,7 +155,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Usuario eliminado' });
   } catch (err) {
     console.error('usuarios_delete error:', err);
-    return res.status(500).json({ success:false, message:'Error al eliminar el usuario' });
+    const { message, status } = extractDbError(err, 'Error al eliminar el usuario');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -163,7 +167,8 @@ Router.get('/get_all', requireAdmin, async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado de usuarios', data });
   } catch (err) {
     console.error('usuarios_get_all error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener usuarios' });
+    const { message, status } = extractDbError(err, 'Error al obtener usuarios');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -185,7 +190,8 @@ Router.get('/por_id/:usuario_id', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Usuario obtenido', data: safe });
   } catch (err) {
     console.error('usuario_por_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener el usuario' });
+    const { message, status } = extractDbError(err, 'Error al obtener el usuario');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -204,7 +210,8 @@ Router.get('/por_email/:email', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Usuario obtenido por email', data: data[0] });
   } catch (err) {
     console.error('usuario_por_email error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener el usuario por email' });
+    const { message, status } = extractDbError(err, 'Error al obtener el usuario por email');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -230,7 +237,8 @@ Router.get('/login_lookup/:email', async (req, res) => {
     // Si deseas devolver 'contrasena' (p.ej., hash) elimina el filtrado anterior.
   } catch (err) {
     console.error('buscar_id_para_login error:', err);
-    return res.status(500).json({ success:false, message:'Error en login lookup' });
+    const { message, status } = extractDbError(err, 'Error en login lookup');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -256,7 +264,8 @@ Router.post('/set_tipo', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Tipo de usuario actualizado', data });
   } catch (err) {
     console.error('usuarios_set_tipo error:', err);
-    return res.status(500).json({ success:false, message:'Error al actualizar tipo de usuario' });
+    const { message, status } = extractDbError(err, 'Error al actualizar tipo de usuario');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -274,7 +283,8 @@ Router.post('/set_admin', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Usuario marcado como admin', data });
   } catch (err) {
     console.error('usuarios_set_admin error:', err);
-    return res.status(500).json({ success:false, message:'Error al marcar admin' });
+    const { message, status } = extractDbError(err, 'Error al marcar admin');
+    return res.status(status).json({ success: false, message });
   }
 });
 

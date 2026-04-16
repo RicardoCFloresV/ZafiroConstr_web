@@ -8,7 +8,9 @@
       "Bash(perl --version)",
       "Bash(perl -e ':*)",
       "Bash(grep -c \"<aside\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)",
-      "Bash(grep -c \"sidebarLoader.js\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)"
+      "Bash(grep -c \"sidebarLoader.js\" \"C:/Users/ricar/Documents/Proyecto Base/ZafiroConstr_web-1/Protected/pages/panels/\"*.html)",
+      "Bash(powershell -Command \"Write-Host 'pwsh ok'\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\ricar\\\\Documents\\\\Proyecto Base\\\\ZafiroConstr_web-1\\\\_patch_routes.ps1\")"
     ]
   }
 }

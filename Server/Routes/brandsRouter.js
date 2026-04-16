@@ -1,4 +1,4 @@
-// Server/routes/brandsRouter.js
+﻿// Server/routes/brandsRouter.js
 // Stored procedures (params y retorno esperado):
 // - brands_insert(@nombre NVARCHAR(50))
 //     -> RETURNS: [ { brand_id, nombre } ]
@@ -17,6 +17,7 @@ const ValidationService = require('../Validators/validatorService.js');
 const { InsertRules, UpdateRules, DeleteRules, PorIdRules } = require('../Validators/Rulesets/brands.js');
 
 const { requireAuth, requireAdmin } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -36,7 +37,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success:true, message:'Marca creada', data });
   } catch (err) {
     console.error('brands_insert error:', err);
-    return res.status(500).json({ success:false, message:'Error al crear la marca' });
+    const { message, status } = extractDbError(err, 'Error al crear la marca');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -55,7 +57,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Marca actualizada' });
   } catch (err) {
     console.error('brands_update error:', err);
-    return res.status(500).json({ success:false, message:'Error al actualizar la marca' });
+    const { message, status } = extractDbError(err, 'Error al actualizar la marca');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -71,7 +74,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Marca eliminada' });
   } catch (err) {
     console.error('brands_delete error:', err);
-    return res.status(500).json({ success:false, message:'Error al eliminar la marca' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la marca');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -82,7 +86,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado de marcas', data });
   } catch (err) {
     console.error('brands_get_all error:', err);
-    return res.status(500).json({ success:false, message:'Error al listar marcas' });
+    const { message, status } = extractDbError(err, 'Error al listar marcas');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -101,7 +106,8 @@ Router.get('/por_id/:brand_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Marca obtenida', data: data[0] });
   } catch (err) {
     console.error('brands_get_by_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener la marca' });
+    const { message, status } = extractDbError(err, 'Error al obtener la marca');
+    return res.status(status).json({ success: false, message });
   }
 });
 

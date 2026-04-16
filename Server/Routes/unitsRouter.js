@@ -1,4 +1,4 @@
-// Server/routes/unitsRouter.js
+﻿// Server/routes/unitsRouter.js
 // Stored procedures (params y retorno esperado):
 // - units_insert(@nombre NVARCHAR(50))
 //     -> RETURNS: [ { unit_id } ]   (tu SP original devuelve sólo el ID; si prefieres, ajústalo para devolver {unit_id, nombre})
@@ -18,6 +18,7 @@ const { InsertRules, UpdateRules, DeleteRules, PorIdRules } =
   require('../Validators/Rulesets/units.js');
 
 const { requireAuth, requireAdmin } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -41,7 +42,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('units_insert error:', err);
-    return res.status(500).json({ success:false, message:'Error al crear la unidad' });
+    const { message, status } = extractDbError(err, 'Error al crear la unidad');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -60,7 +62,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Unidad actualizada' });
   } catch (err) {
     console.error('units_update error:', err);
-    return res.status(500).json({ success:false, message:'Error al actualizar la unidad' });
+    const { message, status } = extractDbError(err, 'Error al actualizar la unidad');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -76,7 +79,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Unidad eliminada' });
   } catch (err) {
     console.error('units_delete error:', err);
-    return res.status(500).json({ success:false, message:'Error al eliminar la unidad' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la unidad');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -87,7 +91,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado de unidades', data });
   } catch (err) {
     console.error('units_get_all error:', err);
-    return res.status(500).json({ success:false, message:'Error al listar unidades' });
+    const { message, status } = extractDbError(err, 'Error al listar unidades');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -106,7 +111,8 @@ Router.get('/por_id/:unit_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Unidad obtenida', data: data[0] });
   } catch (err) {
     console.error('units_get_by_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener la unidad' });
+    const { message, status } = extractDbError(err, 'Error al obtener la unidad');
+    return res.status(status).json({ success: false, message });
   }
 });
 

@@ -1,4 +1,4 @@
-// Server/routes/subcategoriasRouter.js
+﻿// Server/routes/subcategoriasRouter.js
 // Stored Procedures usados (con @parámetros y retorno):
 // - subcategorias_insert(@nombre NVARCHAR(100))
 //     -> RETURNS: [ { subcategoria_id, nombre } ]
@@ -24,6 +24,7 @@ const {
 } = require('../Validators/Rulesets/subcategorias.js');
 
 const { requireAuth, requireAdmin } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -48,7 +49,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success: true, message: 'Subcategoría creada', data });
   } catch (err) {
     console.error('subcategorias_insert error:', err);
-    return res.status(500).json({ success: false, message: 'Error al crear la subcategoría' });
+    const { message, status } = extractDbError(err, 'Error al crear la subcategoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -68,7 +70,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Subcategoría actualizada', data });
   } catch (err) {
     console.error('subcategorias_update error:', err);
-    return res.status(500).json({ success: false, message: 'Error al actualizar la subcategoría' });
+    const { message, status } = extractDbError(err, 'Error al actualizar la subcategoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -87,7 +90,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Subcategoría eliminada' });
   } catch (err) {
     console.error('subcategorias_delete error:', err);
-    return res.status(500).json({ success: false, message: 'Error al eliminar la subcategoría' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la subcategoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -98,7 +102,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado de subcategorías', data });
   } catch (err) {
     console.error('subcategorias_get_all error:', err);
-    return res.status(500).json({ success: false, message: 'Error al listar subcategorías' });
+    const { message, status } = extractDbError(err, 'Error al listar subcategorías');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -109,7 +114,8 @@ Router.get('/get_list', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado simple de subcategorías', data });
   } catch (err) {
     console.error('subcategorias_get_list error:', err);
-    return res.status(500).json({ success: false, message: 'Error al listar subcategorías (simple)' });
+    const { message, status } = extractDbError(err, 'Error al listar subcategorías (simple)');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -130,7 +136,8 @@ Router.get('/por_id/:subcategoria_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Subcategoría obtenida', data: data[0] });
   } catch (err) {
     console.error('subcategorias_get_by_id error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener la subcategoría' });
+    const { message, status } = extractDbError(err, 'Error al obtener la subcategoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 

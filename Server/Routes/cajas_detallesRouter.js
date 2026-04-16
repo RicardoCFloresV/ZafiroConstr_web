@@ -1,8 +1,9 @@
-// Server/routes/cajas_detallesRouter.js
+﻿// Server/routes/cajas_detallesRouter.js
 const express = require('express');
 const { db, sql } = require('../../db/dbconnector.js');
 const ValidationService = require('../Validators/validatorService.js');
 const { requireAuth, requireAdmin } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -49,7 +50,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success: true, message: 'Detalle de caja creado', data });
   } catch (err) {
     console.error('cajas_detalles_insert error:', err);
-    return res.status(500).json({ success: false, message: 'Error al crear el detalle de caja' });
+    const { message, status } = extractDbError(err, 'Error al crear el detalle de caja');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -71,7 +73,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Detalle de caja actualizado', data });
   } catch (err) {
     console.error('cajas_detalles_update error:', err);
-    return res.status(500).json({ success: false, message: 'Error al actualizar el detalle de caja' });
+    const { message, status } = extractDbError(err, 'Error al actualizar el detalle de caja');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -90,7 +93,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Detalle de caja eliminado' });
   } catch (err) {
     console.error('cajas_detalles_delete error:', err);
-    return res.status(500).json({ success: false, message: 'Error al eliminar el detalle de caja' });
+    const { message, status } = extractDbError(err, 'Error al eliminar el detalle de caja');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -101,7 +105,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado de detalles de cajas', data });
   } catch (err) {
     console.error('cajas_detalles_get_all error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener detalles de cajas' });
+    const { message, status } = extractDbError(err, 'Error al obtener detalles de cajas');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -120,7 +125,8 @@ Router.get('/por_id/:detalle_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Detalle de caja obtenido', data: data[0] });
   } catch (err) {
     console.error('cajas_detalles_get_by_id error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener el detalle de caja' });
+    const { message, status } = extractDbError(err, 'Error al obtener el detalle de caja');
+    return res.status(status).json({ success: false, message });
   }
 });
 

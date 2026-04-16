@@ -1,4 +1,4 @@
-// Server/routes/reportes_stockRouter.js
+﻿// Server/routes/reportes_stockRouter.js
 // Reportes (solo lectura):
 // - get_all_stock()
 //     -> RETURNS: [ { producto_id, nombre, precio, stock, valor_inventario }, ... ]
@@ -9,6 +9,7 @@
 
 const express = require('express');
 const { db, sql } = require('../../db/dbconnector.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -18,7 +19,8 @@ Router.get('/get_all_stock', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Reporte valor inventario', data });
   } catch (err) {
     console.error('get_all_stock error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener el reporte de inventario' });
+    const { message, status } = extractDbError(err, 'Error al obtener el reporte de inventario');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -28,7 +30,8 @@ Router.get('/get_stock', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Stock total (activos)', data });
   } catch (err) {
     console.error('get_stock error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener el stock total' });
+    const { message, status } = extractDbError(err, 'Error al obtener el stock total');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -44,7 +47,8 @@ Router.get('/get_stock_por_categoria/:categoria_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Stock por categoría', data });
   } catch (err) {
     console.error('get_stock_by_categoria_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener stock por categoría' });
+    const { message, status } = extractDbError(err, 'Error al obtener stock por categoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 

@@ -1,4 +1,4 @@
-// Server/routes/productosRouter.js
+﻿// Server/routes/productosRouter.js
 // Stored Procedures usados (parámetros y retorno esperado):
 // - productos_insert(
 //     @nombre NVARCHAR(100),
@@ -70,6 +70,7 @@ const express = require('express');
 const { db, sql } = require('../../db/dbconnector.js');
 const ValidationService = require('../Validators/validatorService.js');
 const { requireAuth, requireAdmin } = require('./authRouter.js'); // cambia a authRouter.js si aplica
+const { extractDbError } = require('../utils/dbError.js');
 
 // Reglas de validación (simples y auto-contenidas)
 const Rules = {
@@ -153,7 +154,8 @@ Router.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success:true, message:'Producto creado', data });
   } catch (err) {
     console.error('productos_insert error:', err);
-    return res.status(500).json({ success:false, message:'Error al crear el producto' });
+    const { message, status } = extractDbError(err, 'Error al crear el producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -184,7 +186,8 @@ Router.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Producto actualizado', data });
   } catch (err) {
     console.error('productos_update error:', err);
-    return res.status(500).json({ success:false, message:'Error al actualizar el producto' });
+    const { message, status } = extractDbError(err, 'Error al actualizar el producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -201,7 +204,8 @@ Router.post('/soft_delete', requireAuth, async (req, res) => {
     return res.status(200).json({ success:true, message:'Producto desactivado (soft delete)', data });
   } catch (err) {
     console.error('productos_soft_delete error:', err);
-    return res.status(500).json({ success:false, message:'Error al desactivar el producto' });
+    const { message, status } = extractDbError(err, 'Error al desactivar el producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -220,7 +224,8 @@ Router.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success:true, message:'Producto eliminado', data });
   } catch (err) {
     console.error('productos_delete error:', err);
-    return res.status(500).json({ success:false, message:'Error al eliminar el producto' });
+    const { message, status } = extractDbError(err, 'Error al eliminar el producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -231,7 +236,8 @@ Router.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado de productos', data });
   } catch (err) {
     console.error('productos_get_all error:', err);
-    return res.status(500).json({ success:false, message:'Error al listar productos' });
+    const { message, status } = extractDbError(err, 'Error al listar productos');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -241,7 +247,8 @@ Router.get('/get_all_active', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado de productos activos', data });
   } catch (err) {
     console.error('productos_get_all_active error:', err);
-    return res.status(500).json({ success:false, message:'Error al listar productos activos' });
+    const { message, status } = extractDbError(err, 'Error al listar productos activos');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -251,7 +258,8 @@ Router.get('/get_list', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Listado simple de productos', data });
   } catch (err) {
     console.error('productos_get_list error:', err);
-    return res.status(500).json({ success:false, message:'Error al listar productos (simple)' });
+    const { message, status } = extractDbError(err, 'Error al listar productos (simple)');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -268,7 +276,8 @@ Router.get('/por_id/:producto_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Producto obtenido', data: data[0] });
   } catch (err) {
     console.error('productos_get_by_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener el producto' });
+    const { message, status } = extractDbError(err, 'Error al obtener el producto');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -284,7 +293,8 @@ Router.get('/por_categoria/:categoria_principal_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Productos por categoría', data });
   } catch (err) {
     console.error('productos_get_list_by_category_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener productos por categoría' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por categoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -300,7 +310,8 @@ Router.get('/por_caja/:caja_id', async (req, res) => {
     return res.status(200).json({ success:true, message:'Productos por caja', data });
   } catch (err) {
     console.error('productos_get_by_caja_id error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener productos por caja' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por caja');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -316,7 +327,8 @@ Router.get('/buscar_por_nombre/:search_term', async (req, res) => {
     return res.status(200).json({ success:true, message:'Búsqueda por nombre', data });
   } catch (err) {
     console.error('productos_search_by_nombre error:', err);
-    return res.status(500).json({ success:false, message:'Error en la búsqueda por nombre' });
+    const { message, status } = extractDbError(err, 'Error en la búsqueda por nombre');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -336,7 +348,8 @@ Router.get('/buscar_por_precio', async (req, res) => {
     return res.status(200).json({ success:true, message:'Búsqueda por rango de precio', data });
   } catch (err) {
     console.error('productos_search_by_price_range error:', err);
-    return res.status(500).json({ success:false, message:'Error en la búsqueda por precio' });
+    const { message, status } = extractDbError(err, 'Error en la búsqueda por precio');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -346,7 +359,8 @@ Router.get('/por_cajas', async (_req, res) => {
     return res.status(200).json({ success:true, message:'Productos por cajas (resumen)', data });
   } catch (err) {
     console.error('productos_get_by_cajas error:', err);
-    return res.status(500).json({ success:false, message:'Error al obtener productos por cajas' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por cajas');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -364,7 +378,8 @@ Router.post('/set_precio', requireAuth, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Precio actualizado', data });
   } catch (err) {
     console.error('productos_set_precio error:', err);
-    return res.status(500).json({ success: false, message: 'Error al actualizar el precio' });
+    const { message, status } = extractDbError(err, 'Error al actualizar el precio');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -383,7 +398,8 @@ Router.get('/detalle_completo/:producto_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Detalle completo obtenido', data: data[0] });
   } catch (err) {
     console.error('productos_get_detalle_completo error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener el detalle completo' });
+    const { message, status } = extractDbError(err, 'Error al obtener el detalle completo');
+    return res.status(status).json({ success: false, message });
   }
 });
 

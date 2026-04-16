@@ -1,6 +1,7 @@
-// Server/routes/stock_por_Filtro.js
+﻿// Server/routes/stock_por_Filtro.js
 const express = require('express');
 const { db, sql } = require('../../db/dbconnector.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const Router = express.Router();
 
@@ -19,7 +20,8 @@ Router.get('/por_categoria_principal/:categoria_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Productos por categoría principal', data });
   } catch (err) {
     console.error('productos_get_by_categoria_principal error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener productos por categoría principal' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por categoría principal');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -38,7 +40,8 @@ Router.get('/por_categoria_secundaria/:categoria_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Productos por categoría secundaria', data });
   } catch (err) {
     console.error('productos_get_by_categoria_secundaria error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener productos por categoría secundaria' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por categoría secundaria');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -57,7 +60,8 @@ Router.get('/por_subcategoria/:subcategoria_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Productos por subcategoría', data });
   } catch (err) {
     console.error('productos_get_by_subcategoria error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener productos por subcategoría' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por subcategoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -76,7 +80,8 @@ Router.get('/por_unit/:unit_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Productos por unidad', data });
   } catch (err) {
     console.error('productos_get_by_unit error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener productos por unidad' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por unidad');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -95,7 +100,8 @@ Router.get('/por_size/:size_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Productos por tamaño', data });
   } catch (err) {
     console.error('productos_get_by_size error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener productos por tamaño' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por tamaño');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -114,7 +120,8 @@ Router.get('/por_brand/:brand_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Productos por marca', data });
   } catch (err) {
     console.error('productos_get_by_brand error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener productos por marca' });
+    const { message, status } = extractDbError(err, 'Error al obtener productos por marca');
+    return res.status(status).json({ success: false, message });
   }
 });
 

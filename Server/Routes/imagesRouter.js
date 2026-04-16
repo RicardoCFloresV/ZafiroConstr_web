@@ -4,6 +4,7 @@ const multer = require('multer');
 const { db, sql } = require('../../db/dbconnector.js');
 const imageService = require('../services/imageService.js');
 const { requireAuth } = require('./authRouter.js'); // Middleware de auth
+const { extractDbError } = require('../utils/dbError.js');
 
 const ImagenesRouter = express.Router();
 
@@ -46,7 +47,8 @@ ImagenesRouter.get('/producto/:id', async (req, res) => {
     });
   } catch (err) {
     console.error('imagenes_get_by_producto_id error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener imágenes', data: [] });
+    const { message, status } = extractDbError(err, 'Error al obtener imágenes');
+    return res.status(status).json({ success: false, message, data: [] });
   }
 });
 
@@ -91,7 +93,8 @@ ImagenesRouter.post('/producto/:id', requireAuth, upload.single('image'), async 
 
   } catch (err) {
     console.error('imagenes_insert error:', err);
-    return res.status(500).json({ success: false, message: err.message || 'Error al procesar la imagen' });
+    const { message, status } = extractDbError(err, 'Error al procesar la imagen');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -136,7 +139,8 @@ ImagenesRouter.delete('/:id', requireAuth, async (req, res) => {
 
   } catch (err) {
     console.error('imagenes_delete error:', err);
-    return res.status(500).json({ success: false, message: 'Error al eliminar la imagen' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la imagen');
+    return res.status(status).json({ success: false, message });
   }
 });
 

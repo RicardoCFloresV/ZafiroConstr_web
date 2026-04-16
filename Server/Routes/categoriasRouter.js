@@ -1,4 +1,4 @@
-// Server/routes/categoriasRouter.js
+﻿// Server/routes/categoriasRouter.js
 // Rutas para PROCEDIMIENTOS de CATEGORÍAS
 //
 // SPs usados (con @parámetros y retorno):
@@ -26,6 +26,7 @@ const {
 } = require('../Validators/Rulesets/categorias.js');
 
 const { requireAuth, requireAdmin } = require('./authRouter.js');
+const { extractDbError } = require('../utils/dbError.js');
 
 const CategoriasRouter = express.Router();
 
@@ -36,25 +37,6 @@ function BuildParams(entries) {
   return params;
 }
 
-// Mapear errores de SQL Server (THROW number, message, state) a HTTP
-// Números según tus SP de categorías (51xxx)
-function MapSqlErrorToHttp(err) {
-  if (!err || typeof err.number !== 'number') return null;
-  switch (err.number) {
-    case 51001: // nombre requerido (insert)
-    case 51003: // nombre requerido (update)
-      return { code: 400, message: 'El nombre de la categoría es obligatorio' };
-    case 51002: // no encontrada (update)
-      return { code: 404, message: 'Categoría no encontrada' };
-    case 51004: // duplicado en update
-    case 51006: // duplicado en insert
-      return { code: 409, message: 'Ya existe otra categoría con ese nombre' };
-    case 51005: // delete bloqueado por productos relacionados
-      return { code: 409, message: 'No se puede eliminar: hay productos en esta categoría' };
-    default:
-      return null;
-  }
-}
 
 /* ============================================================================
    POST /categorias/insert  -> SP: categorias_insert
@@ -77,9 +59,8 @@ CategoriasRouter.post('/insert', requireAuth, async (req, res) => {
     return res.status(201).json({ success: true, message: 'Categoría creada', data });
   } catch (err) {
     console.error('categorias_insert error:', err);
-    const mapped = MapSqlErrorToHttp(err);
-    if (mapped) return res.status(mapped.code).json({ success: false, message: mapped.message });
-    return res.status(500).json({ success: false, message: 'Error al crear la categoría' });
+    const { message, status } = extractDbError(err, 'Error al crear la categoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -106,9 +87,8 @@ CategoriasRouter.post('/update', requireAuth, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Categoría actualizada', data });
   } catch (err) {
     console.log('categorias_update error:', err);
-    const mapped = MapSqlErrorToHttp(err);
-    if (mapped) return res.status(mapped.code).json({ success: false, message: mapped.message });
-    return res.status(500).json({ success: false, message: 'Error al actualizar la categoría' });
+    const { message, status } = extractDbError(err, 'Error al actualizar la categoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -129,9 +109,8 @@ CategoriasRouter.post('/delete', requireAdmin, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Categoría eliminada' });
   } catch (err) {
     console.error('categorias_delete error:', err);
-    const mapped = MapSqlErrorToHttp(err);
-    if (mapped) return res.status(mapped.code).json({ success: false, message: mapped.message });
-    return res.status(500).json({ success: false, message: 'Error al eliminar la categoría' });
+    const { message, status } = extractDbError(err, 'Error al eliminar la categoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -147,7 +126,8 @@ CategoriasRouter.get('/get_all', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado de categorías', data });
   } catch (err) {
     console.error('categorias_get_all error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener las categorías' });
+    const { message, status } = extractDbError(err, 'Error al obtener las categorías');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -163,7 +143,8 @@ CategoriasRouter.get('/get_list', async (_req, res) => {
     return res.status(200).json({ success: true, message: 'Listado simple de categorías', data });
   } catch (err) {
     console.error('categorias_get_list error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener la lista de categorías' });
+    const { message, status } = extractDbError(err, 'Error al obtener la lista de categorías');
+    return res.status(status).json({ success: false, message });
   }
 });
 
@@ -187,7 +168,8 @@ CategoriasRouter.get('/por_id/:categoria_id', async (req, res) => {
     return res.status(200).json({ success: true, message: 'Categoría obtenida', data: data[0] });
   } catch (err) {
     console.error('categorias_get_by_id error:', err);
-    return res.status(500).json({ success: false, message: 'Error al obtener la categoría' });
+    const { message, status } = extractDbError(err, 'Error al obtener la categoría');
+    return res.status(status).json({ success: false, message });
   }
 });
 
