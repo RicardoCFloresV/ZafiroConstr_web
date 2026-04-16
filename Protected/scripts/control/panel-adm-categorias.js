@@ -407,34 +407,33 @@ function validateItem({ id, nombre }, mode) {
   };
 }
 
-/* =========================
+//* =========================
    Guardar (insert/update)
    ========================= */
 formEl?.addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
-    const payload = {
-      id: hidId.value ? Number(hidId.value) : undefined,
-      nombre: nombreInput.value
-    };
+    const idVal = hidId.value ? Number(hidId.value) : undefined;
+    const nombreVal = nombreInput.value;
 
-    if (currentMode === "edit" && payload.id) {
+    if (currentMode === "edit" && idVal) {
       let resp;
       switch (currentNivel) {
         case "principal":
-          resp = assertOk(await categoriasAPI.principalesUpdate(payload));
+          // Se envía categoria_id en lugar de un 'id' genérico
+          resp = assertOk(await categoriasAPI.principalesUpdate({ categoria_id: idVal, nombre: nombreVal }));
           break;
         case "secundaria":
-          resp = assertOk(await categoriasAPI.secundariasUpdate(payload));
+          resp = assertOk(await categoriasAPI.secundariasUpdate({ categoria_secundaria_id: idVal, nombre: nombreVal }));
           break;
         case "subcategoria":
-          resp = assertOk(await categoriasAPI.subcategoriasUpdate(payload));
+          resp = assertOk(await categoriasAPI.subcategoriasUpdate({ subcategoria_id: idVal, nombre: nombreVal }));
           break;
       }
       logPaso("Guardar cambios (update)", `/${currentNivel}/update`, resp);
       showToast(`${getNivelNombre(currentNivel)} actualizada correctamente`, "success", "fa-check-circle");
     } else {
-      const { id, ...createData } = payload;
+      const createData = { nombre: nombreVal };
       let resp;
       switch (currentNivel) {
         case "principal":

@@ -39,25 +39,11 @@ function isHtmlRequest(req) {
 // POST /login
 // ---------------------------
 router.post('/login', [
-  // Change validation from 'email' to 'login'
   body('login').trim().isLength({ min: 1, max: 150 }).withMessage('Usuario o email requerido'),
   body('password').notEmpty().withMessage('Se requiere contraseña').isLength({ min: 6 })
 ], async (req, res) => {
-  // Marcador único por request para correlacionar líneas de log
-  const reqId = `login#${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
-  const log = (...args) => console.log(`[auth ${reqId}]`, ...args);
-  const warn = (...args) => console.warn(`[auth ${reqId}]`, ...args);
-
-  log('--- INICIO /auth/login ---');
-  log('IP:', req.ip, '| UA:', (req.headers['user-agent'] || '').slice(0, 80));
-  log('Content-Type:', req.headers['content-type'] || '(ninguno)');
-  log('Body keys:', Object.keys(req.body || {}));
-  log('login recibido:', JSON.stringify(req.body?.login));
-  log('password length:', (req.body?.password || '').length);
-
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    warn('422 Validación fallida ->', errors.array());
     return res.status(422).json({
       success: false,
       message: 'Errores de validación',
@@ -65,60 +51,37 @@ router.post('/login', [
     });
   }
 
-  const { login, password } = req.body; // Changed from email to login
+  const { login, password } = req.body;
 
   try {
-    log('Ejecutando SP buscar_id_para_login con login=', login);
     const rows = await db.executeProc('buscar_id_para_login', {
-      login: { type: sql.NVarChar(150), value: login } // Changed parameter name
+      login: { type: sql.NVarChar(150), value: login }
     });
-    log('SP devolvió', rows?.length || 0, 'fila(s).');
 
     if (!rows?.length) {
-      warn('401 -> usuario no encontrado o inactivo (rows vacío)');
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
-    // Log de la primera fila SIN exponer la contraseña en texto plano
     const rawRow = rows[0] || {};
-    log('Fila[0] keys:', Object.keys(rawRow));
-    log('Fila[0] preview:', {
-      id: rawRow.id,
-      nombre: rawRow.nombre,
-      email: rawRow.email,
-      tipo: rawRow.tipo,
-      estado: rawRow.estado,
-      contrasena_present: rawRow.contrasena != null,
-      contrasena_length: rawRow.contrasena ? String(rawRow.contrasena).length : 0,
-      contrasena_looks_bcrypt: /^\$2[aby]\$/.test(String(rawRow.contrasena || ''))
-    });
-
     const { id, contrasena, tipo, nombre } = rawRow;
+    
     if (!id || !contrasena || !tipo) {
-      warn('401 -> fila incompleta. id?', !!id, 'contrasena?', !!contrasena, 'tipo?', !!tipo);
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
     // ---- Verificación de contraseña ----
-    // Soporta dos formatos en la BD:
-    //  - bcrypt ($2a/$2b/$2y) -> bcrypt.compare
-    //  - texto plano legacy   -> comparación directa + UPGRADE in-place a bcrypt
     const stored = String(contrasena);
     const storedIsHash = isBcryptHash(stored);
-    log('Comparando password. stored es bcrypt?', storedIsHash);
 
     let ok = false;
     if (storedIsHash) {
       try {
         ok = await bcrypt.compare(password, stored);
       } catch (cmpErr) {
-        warn('bcrypt.compare lanzó error:', cmpErr && cmpErr.message);
+        // Ignorar error de comparación internamente
       }
     } else {
-      // LEGACY: la contraseña en BD está en texto plano (insert antiguo sin hash).
-      // Permitimos el login si coincide exactamente y a continuación re-escribimos
-      // el campo con un hash bcrypt para que el próximo login pase por la ruta segura.
-      warn('LEGACY plaintext detected para usuario_id=', id, ' — se intentará upgrade a bcrypt.');
+      // LEGACY: la contraseña en BD está en texto plano.
       ok = (stored === String(password));
       if (ok) {
         try {
@@ -130,27 +93,21 @@ router.post('/login', [
               id:   { type: sql.Int,           value: Number(id) }
             }
           );
-          log('Upgrade a bcrypt OK para usuario_id=', id);
         } catch (upErr) {
-          // No bloqueamos el login si el update falla; solo avisamos.
-          console.error(`[auth ${reqId}] Upgrade a bcrypt FALLÓ para usuario_id=${id}:`, upErr);
+          console.error(`Upgrade a bcrypt FALLÓ para usuario_id=${id}:`, upErr);
         }
       }
     }
-    log('Resultado comparación =', ok);
 
     if (!ok) {
-      warn('401 -> contraseña incorrecta');
       return res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 
-    const normTipo = String(tipo).trim().toLowerCase(); // "usuario" | "admin"
+    const normTipo = String(tipo).trim().toLowerCase();
     const isUser  = normTipo === 'usuario';
     const isAdmin = normTipo === 'admin';
-    log('Tipo normalizado:', normTipo, '| isUser:', isUser, '| isAdmin:', isAdmin);
 
     await regenerateSession(req);
-    log('Sesión regenerada. sid:', req.sessionID);
 
     req.session.userID   = id;
     req.session.userType = tipo;
@@ -160,20 +117,11 @@ router.post('/login', [
     req.session.isAuth   = req.session.isUser || req.session.isAdmin;
 
     await saveSession(req);
-    log('Sesión guardada. Flags:', {
-      userID: req.session.userID,
-      userType: req.session.userType,
-      isUser: req.session.isUser,
-      isAdmin: req.session.isAdmin,
-      isAuth: req.session.isAuth
-    });
 
     if (isHtmlRequest(req)) {
-      log('Request HTML -> redirect 303 a', req.session.isAdmin ? ADMIN_HOME : USER_HOME);
       return res.redirect(303, req.session.isAdmin ? ADMIN_HOME : USER_HOME);
     }
 
-    log('200 -> login OK (JSON). --- FIN ---');
     return res.json({
       success: true,
       message: 'Inicio de sesión exitoso.',
@@ -185,7 +133,7 @@ router.post('/login', [
       isAuth: req.session.isAuth === true
     });
   } catch (err) {
-    console.error(`[auth ${reqId}] Error en el login:`, err);
+    console.error('Error en el login:', err);
     return res.status(500).json({ success: false, message: 'Error en el servidor.' });
   }
 });
@@ -206,7 +154,7 @@ function logoutHandler(req, res) {
     }
     res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
     if (isHtmlRequest(req)) {
-      return res.redirect(303, '/'); // para clics directos
+      return res.redirect(303, '/');
     }
     return res.json({ success: true, message: 'Sesión cerrada correctamente' });
   });
@@ -241,7 +189,6 @@ function requireAuth(req, res, next) {
 
   if (hasSession && hasAllowedRole) return next();
 
-  // No autenticado
   if (isHtmlRequest(req)) return res.redirect('/index.html');
   return res.status(401).json({ success: false, message: 'No autenticado.' });
 }
@@ -264,6 +211,6 @@ function requireUser(req, res, next) {
 
 // Exportaciones
 module.exports = router;
-module.exports.requireAuth  = requireAuth;   // acepta Usuario o Admin
+module.exports.requireAuth  = requireAuth;
 module.exports.requireAdmin = requireAdmin;
 module.exports.requireUser  = requireUser;
