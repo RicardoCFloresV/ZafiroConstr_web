@@ -92,21 +92,25 @@ CajasRouter.post('/update', requireAuth, async (req, res) => {
   }
 });
 
+
 /* ============================================================================
-   POST /cajas/delete  (Solo Admin)
+   DELETE /cajas/delete/:id  (Solo Admin)
    SP: cajas_delete(@caja_id INT)
    RETURNS: none
 ============================================================================ */
-CajasRouter.post('/delete', requireAdmin, async (req, res) => {
+// Changed .post to .delete and added /:id to the route
+CajasRouter.delete('/delete/:id', requireAdmin, async (req, res) => {
   try {
-    const body = req.body;
-    console.log('cajas_delete body:', body); // Debug log
-    const { isValid, errors } = await ValidationService.validateData(body, DeleteRules);
-    if (!isValid) {
-      return res.status(400).json({ success: false, message: 'Datos inválidos (delete)', errors });
+    // Extract ID from the URL params instead of req.body
+    const cajaId = req.params.id; 
+    console.log('cajas_delete ID:', cajaId); 
+
+    // Validación básica del ID
+    if (!cajaId) {
+      return res.status(400).json({ success: false, message: 'ID de caja requerido' });
     }
 
-    const params = BuildParams([{ name: 'caja_id', type: sql.Int, value: Number(body.caja_id) }]);
+    const params = BuildParams([{ name: 'caja_id', type: sql.Int, value: Number(cajaId) }]);
     await db.executeProc('cajas_delete', params);
 
     return res.status(200).json({ success: true, message: 'Caja eliminada' });
