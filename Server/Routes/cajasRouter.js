@@ -100,6 +100,7 @@ CajasRouter.post('/update', requireAuth, async (req, res) => {
 CajasRouter.post('/delete', requireAdmin, async (req, res) => {
   try {
     const body = req.body;
+    console.log('cajas_delete body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, DeleteRules);
     if (!isValid) {
       return res.status(400).json({ success: false, message: 'Datos inválidos (delete)', errors });
