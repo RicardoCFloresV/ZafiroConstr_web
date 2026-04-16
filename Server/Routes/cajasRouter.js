@@ -98,12 +98,10 @@ CajasRouter.post('/update', requireAuth, async (req, res) => {
    SP: cajas_delete(@caja_id INT)
    RETURNS: none
 ============================================================================ */
-// Changed .post to .delete and added /:id to the route
 CajasRouter.delete('/delete/:id', requireAdmin, async (req, res) => {
   try {
     // Extract ID from the URL params instead of req.body
-    const cajaId = req.params.id; 
-    console.log('cajas_delete ID:', cajaId); 
+    const cajaId = req.params.id;  
 
     // Validación básica del ID
     if (!cajaId) {
@@ -116,7 +114,12 @@ CajasRouter.delete('/delete/:id', requireAdmin, async (req, res) => {
     return res.status(200).json({ success: true, message: 'Caja eliminada' });
   } catch (err) {
     console.error('cajas_delete error:', err);
-    return res.status(500).json({ success: false, message: 'Error al eliminar la caja' });
+    
+    // Extraemos el mensaje específico lanzado por el Stored Procedure de SQL Server
+    const mensajeError = err.originalError?.info?.message || err.message || 'Error al eliminar la caja';
+    
+    // Retornamos el mensaje real al frontend (usando 400 Bad Request o 409 Conflict para errores de lógica de negocio)
+    return res.status(400).json({ success: false, message: mensajeError });
   }
 });
 
