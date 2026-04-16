@@ -60,6 +60,7 @@ const cajasAPI = {
             }
         });
         return await response.json();
+        console
     }
 };
 
