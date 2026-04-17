@@ -412,6 +412,7 @@ formEl?.addEventListener("submit", async (e) => {
     };
 
     if (currentMode === "edit" && payload.caja_id) {
+      console.log("Payload para update:", payload); // Debug log
       const resp = assertOk(await cajasAPI.update(payload));
       logPaso("Guardar cambios (update)", "/update", resp);
       showToast("Caja actualizada correctamente", "success", "fa-check-circle");
