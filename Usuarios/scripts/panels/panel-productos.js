@@ -685,17 +685,6 @@ function stkOpenAddModal() {
 
   openModal("modalAddStock");
 }
-/* Rellena las opciones A-Z del generador de etiqueta en Agregar (se llama una sola vez) */
-function populateAddGenSelects() {
-  const sel1 = $("addLetra1");
-  const sel2 = $("addLetra2");
-  if (!sel1 || !sel2 || sel1.options.length > 1) return; // ya pobladas
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
-    sel1.add(new Option(l, l));
-    sel2.add(new Option(l, l));
-  });
-}
-
 /* Calcula la etiqueta y auto-selecciona la caja en el select de Agregar */
 function syncAddCajaFromGenerator() {
   const l1    = $("addLetra1")?.value || "";
@@ -866,7 +855,6 @@ function wire() {
   $("formRemoveStock")?.addEventListener("submit", stkSubmitRemove);
 
   // Generador de etiqueta en modal Agregar
-  populateAddGenSelects();
   ["addLetra1","addLetra2","addCara","addNivel"].forEach(id =>
     $(id)?.addEventListener("change", syncAddCajaFromGenerator)
   );
