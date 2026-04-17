@@ -407,9 +407,9 @@ function validateItem({ id, nombre }, mode) {
   };
 }
 
-//* =========================
+/* =========================
    Guardar (insert/update)
-   ========================= */
+   =========================*/
 formEl?.addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
