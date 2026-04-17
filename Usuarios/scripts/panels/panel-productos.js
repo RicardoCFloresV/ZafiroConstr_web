@@ -622,15 +622,73 @@ async function stkRefreshDetalles() {
 
 function stkOpenAddModal() {
   if (!stk.producto_id) return toast("Selecciona un producto primero", "error", "fa-circle-exclamation");
+
+  // Poblar select con todas las cajas; marcar las que ya tienen stock de este producto
+  const stockMap = new Map(stk.detalles.map(d => [String(d.caja_id), d.stock]));
+  const sel = $("addCajaSelect");
+  sel.innerHTML = "";
+  const empty = document.createElement("option");
+  empty.value = ""; empty.textContent = "— Seleccione una caja —";
+  sel.appendChild(empty);
+
+  // Cajas con stock existente primero
+  const conStock   = state.cat.cajas.filter(c => stockMap.has(String(c.caja_id)));
+  const sinStock   = state.cat.cajas.filter(c => !stockMap.has(String(c.caja_id)));
+
+  if (conStock.length) {
+    const grp = document.createElement("optgroup");
+    grp.label = "Ya tiene stock";
+    for (const c of conStock) {
+      const op = document.createElement("option");
+      op.value = String(c.caja_id);
+      op.textContent = `${c.etiqueta}  (stock actual: ${stockMap.get(String(c.caja_id))})`;
+      grp.appendChild(op);
+    }
+    sel.appendChild(grp);
+  }
+  if (sinStock.length) {
+    const grp = document.createElement("optgroup");
+    grp.label = "Sin stock de este producto";
+    for (const c of sinStock) {
+      const op = document.createElement("option");
+      op.value = String(c.caja_id);
+      op.textContent = c.etiqueta;
+      grp.appendChild(op);
+    }
+    sel.appendChild(grp);
+  }
+
   $("addProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
-  $("addCajaSelect").value = "";
   $("addDelta").value = "";
   openModal("modalAddStock");
 }
 function stkOpenRemoveModal() {
   if (!stk.producto_id) return toast("Selecciona un producto primero", "error", "fa-circle-exclamation");
+
+  // Solo mostrar cajas que realmente tienen stock de este producto (stock > 0)
+  const cajasConStock = stk.detalles.filter(d => d.stock > 0);
+  const sel = $("removeCajaSelect");
+  sel.innerHTML = "";
+  if (!cajasConStock.length) {
+    const op = document.createElement("option");
+    op.value = ""; op.textContent = "— Sin stock en ninguna caja —";
+    sel.appendChild(op);
+    $("remProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
+    $("removeDelta").value = "";
+    openModal("modalRemoveStock");
+    return;
+  }
+  const empty = document.createElement("option");
+  empty.value = ""; empty.textContent = "— Seleccione una caja —";
+  sel.appendChild(empty);
+  for (const d of cajasConStock) {
+    const op = document.createElement("option");
+    op.value = String(d.caja_id);
+    op.textContent = `${escapeHtml(d.etiqueta || `Caja ${d.caja_id}`)}  (stock: ${d.stock})`;
+    sel.appendChild(op);
+  }
+
   $("remProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
-  $("removeCajaSelect").value = "";
   $("removeDelta").value = "";
   openModal("modalRemoveStock");
 }
