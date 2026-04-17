@@ -318,7 +318,7 @@ formEl?.addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
     const payload = {
-      id: hidId.value ? Number(hidId.value) : undefined,
+      marca_id: hidId.value ? Number(hidId.value) : undefined,
       nombre: nombreInput.value
     };
 
