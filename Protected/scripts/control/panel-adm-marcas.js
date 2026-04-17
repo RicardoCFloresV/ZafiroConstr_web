@@ -318,12 +318,12 @@ formEl?.addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
     const payload = {
-      marca_id: hidId.value ? Number(hidId.value) : undefined,
+      brand_id: hidId.value ? Number(hidId.value) : undefined,
       nombre: nombreInput.value
     };
 
     // EDITAR
-    if (currentMode === "edit" && payload.marca_id) {
+    if (currentMode === "edit" && payload.brand_id) {
       const resp = assertOk(await marcasAPI.update(payload));
       logPaso("Guardar cambios (update)", "/update", resp);
       showToast("Marca actualizada correctamente", "success", "fa-check-circle");
