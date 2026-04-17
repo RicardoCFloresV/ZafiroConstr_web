@@ -322,12 +322,14 @@ formEl?.addEventListener("submit", async (e) => {
       nombre: nombreInput.value
     };
 
-    if (currentMode === "edit" && payload.id) {
+    // EDITAR
+    if (currentMode === "edit" && payload.marca_id) {
       const resp = assertOk(await marcasAPI.update(payload));
       logPaso("Guardar cambios (update)", "/update", resp);
       showToast("Marca actualizada correctamente", "success", "fa-check-circle");
     } else {
-      const { id, ...createData } = payload;
+    // INSERTAR
+      const { marca_id, ...createData } = payload;
       const resp = assertOk(await marcasAPI.insert(createData));
       logPaso("Agregar (insert)", "/insert", resp);
       showToast("Marca creada correctamente", "success", "fa-check-circle");
