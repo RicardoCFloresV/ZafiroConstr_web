@@ -43,7 +43,7 @@ const cajasAPI = {
 
     async update(data) {
         const response = await fetch('/cajas/update', {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
