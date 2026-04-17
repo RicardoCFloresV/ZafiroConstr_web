@@ -47,6 +47,7 @@ function BuildParams(entries) {
 CategoriasRouter.post('/insert', requireAuth, async (req, res) => {
   try {
     const Body = req.body;
+    console.log('categorias_insert body:', Body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(Body, InsertRules);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (insert)', errors });
 
@@ -73,6 +74,7 @@ CategoriasRouter.post('/insert', requireAuth, async (req, res) => {
 CategoriasRouter.post('/update', requireAuth, async (req, res) => {
   try {
     const Body = req.body;
+    console.log('categorias_update body:', Body); // Debug log
     console.log('Received update request:', Body);
     const { isValid, errors } = await ValidationService.validateData(Body, UpdateRules);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (update)', errors });
@@ -101,6 +103,7 @@ CategoriasRouter.post('/update', requireAuth, async (req, res) => {
 CategoriasRouter.post('/delete', requireAdmin, async (req, res) => {
   try {
     const Body = req.body;
+    console.log('categorias_delete body:', Body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(Body, DeleteRules);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (delete)', errors });
 
@@ -157,6 +160,7 @@ CategoriasRouter.get('/get_list', async (_req, res) => {
 CategoriasRouter.get('/por_id/:categoria_id', async (req, res) => {
   try {
     const Body = { categoria_id: Number(req.params.categoria_id) };
+    console.log('categorias_get_by_id body:', Body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(Body, PorIdRules);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (por_id)', errors });
 

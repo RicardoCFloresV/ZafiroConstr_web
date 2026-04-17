@@ -34,6 +34,7 @@ function BuildParams(entries) {
 Router.post('/insert_with_stock', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('producto_insert_with_stock body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.InsertWithStock);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (insert with stock)', errors });
 

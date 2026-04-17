@@ -37,6 +37,7 @@ function BuildParams(entries) {
 Router.post('/insert', requireAuth, async (req, res) => {
   try {
     const body = req.body;
+    console.log('cajas_detalles_insert body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, Rules.Insert);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos', errors });
 
@@ -59,6 +60,7 @@ Router.post('/insert', requireAuth, async (req, res) => {
 Router.post('/update', requireAuth, async (req, res) => {
   try {
     const body = req.body;
+    console.log('cajas_detalles_update body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, Rules.Update);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos', errors });
 
@@ -82,6 +84,7 @@ Router.post('/update', requireAuth, async (req, res) => {
 Router.post('/delete', requireAdmin, async (req, res) => {
   try {
     const body = req.body;
+    console.log('cajas_detalles_delete body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, Rules.Delete);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos', errors });
 
@@ -114,6 +117,7 @@ Router.get('/get_all', async (_req, res) => {
 Router.get('/por_id/:detalle_id', async (req, res) => {
   try {
     const body = { detalle_id: Number(req.params.detalle_id) };
+    console.log('cajas_detalles_get_by_id body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, Rules.PorId);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos', errors });
 

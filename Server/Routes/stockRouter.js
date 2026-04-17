@@ -52,6 +52,7 @@ function BuildParams(entries){ const p={}; for(const e of entries) p[e.name]={ty
 Router.get('/producto/:producto_id', async (req, res) => {
   try {
     const B = { producto_id: Number(req.params.producto_id) };
+    console.log('productos_get_stock body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.ByProducto);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (stock por producto)', errors });
 
@@ -69,6 +70,7 @@ Router.get('/producto/:producto_id', async (req, res) => {
 Router.get('/detalles_por_producto/:producto_id', async (req, res) => {
   try {
     const B = { producto_id: Number(req.params.producto_id) };
+    console.log('cajas_detalles_get_by_producto body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.ByProducto);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (detalles_por_producto)', errors });
 
@@ -86,6 +88,7 @@ Router.get('/detalles_por_producto/:producto_id', async (req, res) => {
 Router.get('/detalle_por_id/:detalle_id', async (req, res) => {
   try {
     const B = { detalle_id: Number(req.params.detalle_id) };
+    console.log('cajas_detalles_get_by_id body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.ByDetalle);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (detalle_por_id)', errors });
 
@@ -105,6 +108,7 @@ Router.get('/detalle_por_id/:detalle_id', async (req, res) => {
 Router.post('/add', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_add_stock body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.AddRemove);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (add)', errors });
 
@@ -125,6 +129,7 @@ Router.post('/add', requireAuth, async (req, res) => {
 Router.post('/remove', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_remove_stock body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.AddRemove);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (remove)', errors });
 
@@ -145,6 +150,7 @@ Router.post('/remove', requireAuth, async (req, res) => {
 Router.post('/set_by_detalle', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_set_stock_by_detalle body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.SetByDetalle);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (set_by_detalle)', errors });
 
@@ -165,6 +171,7 @@ Router.post('/set_by_detalle', requireAuth, async (req, res) => {
 Router.post('/move', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_move_stock body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.Move);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (move)', errors });
 

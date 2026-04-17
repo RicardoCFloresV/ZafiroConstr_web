@@ -133,6 +133,7 @@ function BuildParams(entries) {
 Router.post('/insert', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_insert body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.Insert);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (insert)', errors });
 
@@ -163,6 +164,7 @@ Router.post('/insert', requireAuth, async (req, res) => {
 Router.post('/update', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_update body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.Update);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (update)', errors });
 
@@ -195,6 +197,7 @@ Router.post('/update', requireAuth, async (req, res) => {
 Router.post('/soft_delete', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_soft_delete body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.SoftDelete);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (soft_delete)', errors });
 
@@ -213,6 +216,7 @@ Router.post('/soft_delete', requireAuth, async (req, res) => {
 Router.post('/delete', requireAdmin, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_delete body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.Delete);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (delete)', errors });
 
@@ -266,6 +270,7 @@ Router.get('/get_list', async (_req, res) => {
 Router.get('/por_id/:producto_id', async (req, res) => {
   try {
     const B = { producto_id: Number(req.params.producto_id) };
+    console.log('productos_get_by_id body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.PorId);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (por_id)', errors });
 
@@ -284,6 +289,7 @@ Router.get('/por_id/:producto_id', async (req, res) => {
 Router.get('/por_categoria/:categoria_principal_id', async (req, res) => {
   try {
     const B = { categoria_principal_id: Number(req.params.categoria_principal_id) };
+    console.log('productos_get_list_by_category_id body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.ByCategoria);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (por_categoria)', errors });
 
@@ -301,6 +307,7 @@ Router.get('/por_categoria/:categoria_principal_id', async (req, res) => {
 Router.get('/por_caja/:caja_id', async (req, res) => {
   try {
     const B = { caja_id: Number(req.params.caja_id) };
+    console.log('productos_get_by_caja_id body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.ByCaja);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (por_caja)', errors });
 
@@ -318,6 +325,7 @@ Router.get('/por_caja/:caja_id', async (req, res) => {
 Router.get('/buscar_por_nombre/:search_term', async (req, res) => {
   try {
     const B = { search_term: String(req.params.search_term) };
+    console.log('productos_search_by_nombre body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.SearchNombre);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (buscar_por_nombre)', errors });
 
@@ -338,6 +346,8 @@ Router.get('/buscar_por_precio', async (req, res) => {
     const precio_min = req.query.min != null ? Number(req.query.min) : null;
     const precio_max = req.query.max != null ? Number(req.query.max) : null;
     const B = { precio_min, precio_max };
+    console.log('productos_search_by_price_range body:', B); // Debug log
+
     const { isValid, errors } = await ValidationService.validateData(B, Rules.SearchPrecio);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (buscar_por_precio)', errors });
 
@@ -367,6 +377,7 @@ Router.get('/por_cajas', async (_req, res) => {
 Router.post('/set_precio', requireAuth, async (req, res) => {
   try {
     const B = req.body;
+    console.log('productos_set_precio body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.SetPrecio);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (set_precio)', errors });
 
@@ -387,6 +398,7 @@ Router.post('/set_precio', requireAuth, async (req, res) => {
 Router.get('/detalle_completo/:producto_id', async (req, res) => {
   try {
     const B = { producto_id: Number(req.params.producto_id) };
+    console.log('productos_get_detalle_completo body:', B); // Debug log
     const { isValid, errors } = await ValidationService.validateData(B, Rules.PorId);
     if (!isValid) return res.status(400).json({ success: false, message: 'Datos inválidos (detalle_completo)', errors });
 

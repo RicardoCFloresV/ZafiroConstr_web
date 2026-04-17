@@ -38,6 +38,7 @@ Router.get('/get_stock', async (_req, res) => {
 Router.get('/get_stock_por_categoria/:categoria_id', async (req, res) => {
   try {
     const categoria_id = Number(req.params.categoria_id);
+    console.log('get_stock_by_categoria_id categoria_id:', categoria_id); // Debug log
     if (!Number.isInteger(categoria_id) || categoria_id <= 0) {
       return res.status(400).json({ success:false, message:'categoria_id inválido' });
     }

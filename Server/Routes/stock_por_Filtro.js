@@ -9,6 +9,7 @@ const Router = express.Router();
 Router.get('/por_categoria_principal/:categoria_id', async (req, res) => {
   try {
     const categoria_id = Number(req.params.categoria_id);
+    console.log('productos_get_by_categoria_principal categoria_id:', categoria_id); // Debug log
     if (!Number.isInteger(categoria_id) || categoria_id <= 0) {
       return res.status(400).json({ success: false, message: 'categoria_id inválido' });
     }
@@ -29,6 +30,7 @@ Router.get('/por_categoria_principal/:categoria_id', async (req, res) => {
 Router.get('/por_categoria_secundaria/:categoria_id', async (req, res) => {
   try {
     const categoria_id = Number(req.params.categoria_id);
+    console.log('productos_get_by_categoria_secundaria categoria_id:', categoria_id); // Debug log
     if (!Number.isInteger(categoria_id) || categoria_id <= 0) {
       return res.status(400).json({ success: false, message: 'categoria_id inválido' });
     }
@@ -49,6 +51,7 @@ Router.get('/por_categoria_secundaria/:categoria_id', async (req, res) => {
 Router.get('/por_subcategoria/:subcategoria_id', async (req, res) => {
   try {
     const subcategoria_id = Number(req.params.subcategoria_id);
+    console.log('productos_get_by_subcategoria subcategoria_id:', subcategoria_id); // Debug log
     if (!Number.isInteger(subcategoria_id) || subcategoria_id <= 0) {
       return res.status(400).json({ success: false, message: 'subcategoria_id inválido' });
     }
@@ -69,6 +72,7 @@ Router.get('/por_subcategoria/:subcategoria_id', async (req, res) => {
 Router.get('/por_unit/:unit_id', async (req, res) => {
   try {
     const unit_id = Number(req.params.unit_id);
+    console.log('productos_get_by_unit unit_id:', unit_id); // Debug log
     if (!Number.isInteger(unit_id) || unit_id <= 0) {
       return res.status(400).json({ success: false, message: 'unit_id inválido' });
     }
@@ -89,6 +93,7 @@ Router.get('/por_unit/:unit_id', async (req, res) => {
 Router.get('/por_size/:size_id', async (req, res) => {
   try {
     const size_id = Number(req.params.size_id);
+    console.log('productos_get_by_size size_id:', size_id); // Debug log
     if (!Number.isInteger(size_id) || size_id <= 0) {
       return res.status(400).json({ success: false, message: 'size_id inválido' });
     }
@@ -109,6 +114,7 @@ Router.get('/por_size/:size_id', async (req, res) => {
 Router.get('/por_brand/:brand_id', async (req, res) => {
   try {
     const brand_id = Number(req.params.brand_id);
+    console.log('productos_get_by_brand brand_id:', brand_id); // Debug log
     if (!Number.isInteger(brand_id) || brand_id <= 0) {
       return res.status(400).json({ success: false, message: 'brand_id inválido' });
     }

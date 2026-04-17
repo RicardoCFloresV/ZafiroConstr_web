@@ -54,6 +54,7 @@ CajasRouter.post('/insert', requireAuth, async (req, res) => {
 CajasRouter.post('/update', requireAuth, async (req, res) => {
   try {
     const body = req.body;
+    console.log('cajas_update body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, UpdateRules);
     if (!isValid) {
       return res.status(400).json({ success: false, message: 'Datos inválidos (update)', errors });
@@ -87,7 +88,7 @@ CajasRouter.post('/update', requireAuth, async (req, res) => {
 CajasRouter.delete('/delete/:id', requireAdmin, async (req, res) => {
   try {
     const cajaId = req.params.id;  
-
+    console.log('cajas_delete id:', cajaId); // Debug log
     if (!cajaId) {
       return res.status(400).json({ success: false, message: 'ID de caja requerido' });
     }
@@ -128,6 +129,7 @@ CajasRouter.get('/get_all', async (_req, res) => {
 CajasRouter.get('/get_list', async (_req, res) => {
   try {
     const data = await db.executeProc('cajas_get_list', {});
+    console.log('cajas_get_list data:', data); // Debug log
     return res.status(200).json({
       success: true,
       message: data.length ? 'Listado de etiquetas de cajas' : 'Sin cajas registradas',
@@ -146,6 +148,7 @@ CajasRouter.get('/get_list', async (_req, res) => {
 CajasRouter.get('/por_id/:caja_id', async (req, res) => {
   try {
     const body = { caja_id: Number(req.params.caja_id) };
+    console.log('cajas_get_by_id body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, PorIdRules);
     if (!isValid) {
       return res.status(400).json({ success: false, message: 'Datos inválidos (por_id)', errors });
@@ -170,7 +173,7 @@ CajasRouter.get('/por_id/:caja_id', async (req, res) => {
 CajasRouter.get('/por_componentes', async (req, res) => {
   try {
     const { letra, cara, nivel } = req.query;
-    
+    console.log('cajas_get_by_components query:', req.query); // Debug log
     if (!letra || !cara || !nivel) {
       return res.status(400).json({ 
         success: false, 

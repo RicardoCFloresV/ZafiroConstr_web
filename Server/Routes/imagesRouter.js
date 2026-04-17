@@ -29,7 +29,7 @@ function BuildParams(entries) {
 ImagenesRouter.get('/producto/:id', async (req, res) => {
   try {
     const productoId = Number(req.params.id);
-    
+    console.log('Received request for images of producto_id:', productoId); // Debug log
     if (!productoId || isNaN(productoId)) {
       return res.status(400).json({ success: false, message: 'ID de producto inválido' });
     }
