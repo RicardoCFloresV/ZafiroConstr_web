@@ -682,27 +682,25 @@ function stkOpenAddModal() {
 function stkOpenRemoveModal() {
   if (!stk.producto_id) return toast("Selecciona un producto primero", "error", "fa-circle-exclamation");
 
-  // Solo mostrar cajas que realmente tienen stock de este producto (stock > 0)
+  // Solo cajas con stock > 0. Usamos detalle_id como value (caja_id no viene del SP de lectura).
   const cajasConStock = stk.detalles.filter(d => d.stock > 0);
   const sel = $("removeCajaSelect");
   sel.innerHTML = "";
+
   if (!cajasConStock.length) {
     const op = document.createElement("option");
     op.value = ""; op.textContent = "— Sin stock en ninguna caja —";
     sel.appendChild(op);
-    $("remProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
-    $("removeDelta").value = "";
-    openModal("modalRemoveStock");
-    return;
-  }
-  const empty = document.createElement("option");
-  empty.value = ""; empty.textContent = "— Seleccione una caja —";
-  sel.appendChild(empty);
-  for (const d of cajasConStock) {
-    const op = document.createElement("option");
-    op.value = String(d.caja_id);
-    op.textContent = `${escapeHtml(d.etiqueta || `Caja ${d.caja_id}`)}  (stock: ${d.stock})`;
-    sel.appendChild(op);
+  } else {
+    const empty = document.createElement("option");
+    empty.value = ""; empty.textContent = "— Seleccione una caja —";
+    sel.appendChild(empty);
+    for (const d of cajasConStock) {
+      const op = document.createElement("option");
+      op.value = String(d.detalle_id);               // ← detalle_id, no caja_id
+      op.textContent = `${escapeHtml(d.etiqueta || `Detalle #${d.detalle_id}`)}  (stock: ${d.stock})`;
+      sel.appendChild(op);
+    }
   }
 
   $("remProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
