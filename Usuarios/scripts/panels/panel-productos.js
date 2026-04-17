@@ -276,13 +276,24 @@ function renderTabla() {
   $("lblCount").textContent = String(rows.length);
 
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="11" class="table-message">Sin resultados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="table-message">Sin resultados.</td></tr>`;
     return;
   }
   const frag = document.createDocumentFragment();
   for (const p of rows) {
-    const stockN = Number(p.stock_total || 0);
+    const stockN   = Number(p.stock_total || 0);
     const stockCls = stockN > 0 ? "text-success" : "text-textMuted";
+
+    // Columna categorías: badges apilados, omitir vacíos
+    const catBadges = [
+      { label: p.categoria_principal_nombre,   cls: "bg-primary/10 text-primary border-primary/20" },
+      { label: p.categoria_secundaria_nombre,  cls: "bg-secondary/10 text-secondary border-secondary/20" },
+      { label: p.subcategoria_nombre,          cls: "bg-accent/10 text-accent-dark border-accent/20" }
+    ].filter(b => b.label && b.label.trim())
+     .map(b => `<span class="inline-flex items-center px-2 py-0.5 mr-0.5 mb-0.5 rounded-full text-xs font-semibold border ${b.cls}">${escapeHtml(b.label)}</span>`)
+     .join("") || `<span class="text-textMuted text-xs italic">—</span>`;
+
+    const isActivo = Number(p.estado) === 1;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -290,13 +301,19 @@ function renderTabla() {
       <td>${escapeHtml(p.nombre)}</td>
       <td>${fmtMoney(p.precio)}</td>
       <td>${escapeHtml(p.brand_nombre)}</td>
-      <td>${escapeHtml(p.categoria_principal_nombre)}</td>
-      <td>${escapeHtml(p.categoria_secundaria_nombre)}</td>
-      <td>${escapeHtml(p.subcategoria_nombre)}</td>
+      <td>${catBadges}</td>
       <td>${escapeHtml(p.size_value ?? "")} ${escapeHtml(p.size_nombre)}</td>
       <td>${p.unit_value ?? ""} ${escapeHtml(p.unit_nombre)}</td>
       <td><span class="font-bold ${stockCls}">${stockN}</span></td>
-      <td>${renderCajasBadges(p.producto_id)}</td>`;
+      <td>${renderCajasBadges(p.producto_id)}</td>
+      <td>
+        ${isActivo
+          ? `<button class="js-goto-stock inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors shadow-sm" data-id="${p.producto_id}" title="Gestionar stock">
+               <i class="fa-solid fa-warehouse"></i> Stock
+             </button>`
+          : `<span class="text-textMuted text-xs italic">Inactivo</span>`
+        }
+      </td>`;
     frag.appendChild(tr);
   }
   tbody.innerHTML = "";
@@ -754,6 +771,18 @@ function wire() {
     paintStockProductoSelect();
     renderTabla();
     toast("Datos actualizados", "info", "fa-arrows-rotate");
+  });
+
+  // Botón Stock en fila → selecciona en módulo stock y hace scroll
+  $("tbProductos")?.addEventListener("click", async (ev) => {
+    const btn = ev.target.closest(".js-goto-stock");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const sel = $("stkProductoSel");
+    if (!sel) return;
+    sel.value = id;
+    await stkOnProductoChange();
+    $("stockSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   // Agregar producto
