@@ -731,12 +731,15 @@ async function stkSubmitRemove(ev) {
   ev.preventDefault();
   const producto_id = stk.producto_id;
   if (!producto_id) return;
-  const caja_id = Number($("removeCajaSelect").value || 0);
+  const detalle_id = Number($("removeCajaSelect").value || 0);
   const delta = Number($("removeDelta").value);
-  if (!caja_id) return toast("Selecciona una caja", "error", "fa-circle-exclamation");
+  if (!detalle_id) return toast("Selecciona una caja", "error", "fa-circle-exclamation");
   if (!Number.isInteger(delta) || delta <= 0) return toast("Cantidad inválida", "error", "fa-circle-exclamation");
+  const entry = stk.detalles.find(d => d.detalle_id === detalle_id);
+  if (!entry) return toast("Detalle no encontrado", "error", "fa-circle-exclamation");
+  if (delta > entry.stock) return toast(`Stock insuficiente (disponible: ${entry.stock})`, "error", "fa-circle-exclamation");
   try {
-    assertOk(await stockAPI.remove({ caja_id, producto_id, delta }));
+    assertOk(await stockAPI.setByDetalle({ detalle_id, producto_id, stock: entry.stock - delta }));
     toast("Stock retirado", "success", "fa-circle-check");
     closeModal("modalRemoveStock");
     await stkRefreshDetalles();
