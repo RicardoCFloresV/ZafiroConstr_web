@@ -563,6 +563,9 @@ const stk = {
   detalles: []   // [{ detalle_id, caja_id, etiqueta, stock }]
 };
 
+// Estado del generador de etiqueta en modal Agregar
+let _addGen = { letra: "", cara: 0, nivel: 0, hasPending: false };
+
 function stkFindProducto(id) {
   const n = Number(id);
   return state.productos.find(p => Number(p.producto_id) === n) || null;
@@ -685,38 +688,59 @@ function stkOpenAddModal() {
 
   openModal("modalAddStock");
 }
-/* Calcula la etiqueta y auto-selecciona la caja en el select de Agregar */
-function syncAddCajaFromGenerator() {
+/* Verifica si la caja existe via API y auto-selecciona; si no existe la marca como pendiente */
+async function syncAddCajaFromGenerator() {
   const l1    = $("addLetra1")?.value || "";
   const l2    = $("addLetra2")?.value || "";
-  const cara  = $("addCara")?.value   || "";
-  const nivel = $("addNivel")?.value  || "";
+  const cara  = Number($("addCara")?.value  || 0);
+  const nivel = Number($("addNivel")?.value || 0);
   const preview = $("addEtiquetaPreview");
 
-  const reset = () => {
+  // Resetear estado pendiente
+  _addGen = { letra: "", cara: 0, nivel: 0, hasPending: false };
+
+  const resetPreview = () => {
     if (preview) { preview.textContent = ""; preview.className = "text-xs min-h-[1.1rem]"; }
   };
 
-  if (!l1 || !cara || !nivel) { reset(); return; }
+  if (!l1 || !cara || !nivel) { resetPreview(); return; }
 
-  const etiqueta = `${l1}${l2}-${cara}-${nivel}`;
-  // Buscar en todas las cajas disponibles (no solo las que tienen stock del producto)
-  const caja = state.cat.cajas.find(c => (c.etiqueta || "").toUpperCase() === etiqueta.toUpperCase());
-  const sel  = $("addCajaSelect");
+  const letra    = `${l1}${l2}`;
+  const etiqueta = `${letra}-${cara}-${nivel}`;
 
-  if (caja) {
-    sel.value = String(caja.caja_id);
-    const stockActual = stk.detalles.find(d => String(d.caja_id) === String(caja.caja_id))?.stock ?? null;
+  if (preview) {
+    preview.textContent = "Verificando…";
+    preview.className = "text-xs min-h-[1.1rem] text-textMuted";
+  }
+
+  try {
+    const res     = await cajasAPI.getByComponents(letra, cara, nivel);
+    const caja_id = res?.data?.caja_id;
+    const sel     = $("addCajaSelect");
+    sel.value     = String(caja_id);
+
+    const stockActual = stk.detalles.find(d => String(d.caja_id) === String(caja_id))?.stock ?? null;
+    const stockInfo   = stockActual !== null ? `  ·  stock actual: ${stockActual}` : "  ·  sin stock previo";
     if (preview) {
-      const stockInfo = stockActual !== null ? `  (stock actual: ${stockActual})` : "  (sin stock previo)";
       preview.textContent = `✓ ${etiqueta}${stockInfo}`;
-      preview.className = "text-xs min-h-[1.1rem] text-success font-medium";
+      preview.className   = "text-xs min-h-[1.1rem] text-success font-medium";
     }
-  } else {
+  } catch (err) {
+    const sel = $("addCajaSelect");
     sel.value = "";
-    if (preview) {
-      preview.textContent = `${etiqueta} — caja no registrada en el sistema`;
-      preview.className = "text-xs min-h-[1.1rem] text-textMuted italic";
+    // 404 = caja no existe todavía → se creará al guardar
+    const isNotFound = /no encontrada/i.test(err.message) || /404/.test(err.message);
+    if (isNotFound) {
+      _addGen = { letra, cara, nivel, hasPending: true };
+      if (preview) {
+        preview.textContent = `${etiqueta} — caja nueva, se registrará al guardar`;
+        preview.className   = "text-xs min-h-[1.1rem] text-secondary font-medium";
+      }
+    } else {
+      if (preview) {
+        preview.textContent = `Error: ${err.message}`;
+        preview.className   = "text-xs min-h-[1.1rem] text-danger";
+      }
     }
   }
 }
@@ -754,8 +778,24 @@ async function stkSubmitAdd(ev) {
   ev.preventDefault();
   const producto_id = stk.producto_id;
   if (!producto_id) return;
-  const caja_id = Number($("addCajaSelect").value || 0);
+
+  let caja_id = Number($("addCajaSelect").value || 0);
   const delta = Number($("addDelta").value);
+
+  // Si no hay caja seleccionada pero el generador tiene una nueva pendiente → crearla ahora
+  if (!caja_id && _addGen.hasPending) {
+    try {
+      const r = assertOk(await cajasAPI.insert({ letra: _addGen.letra, cara: _addGen.cara, nivel: _addGen.nivel }));
+      caja_id = asArray(r)[0]?.caja_id;
+      if (!caja_id) throw new Error("No se pudo obtener el ID de la caja creada");
+      toast(`Caja ${_addGen.letra}-${_addGen.cara}-${_addGen.nivel} registrada`, "info", "fa-box");
+      await loadCatalogos();
+      paintAllSelects();
+    } catch (e) {
+      return toast(errMsg(e), "error", "fa-circle-exclamation");
+    }
+  }
+
   if (!caja_id) return toast("Selecciona una caja", "error", "fa-circle-exclamation");
   if (!Number.isInteger(delta) || delta <= 0) return toast("Cantidad inválida", "error", "fa-circle-exclamation");
   try {
