@@ -293,8 +293,8 @@ function renderTabla() {
       <td>${escapeHtml(p.categoria_principal_nombre)}</td>
       <td>${escapeHtml(p.categoria_secundaria_nombre)}</td>
       <td>${escapeHtml(p.subcategoria_nombre)}</td>
-      <td>${escapeHtml(p.size_nombre)} ${escapeHtml(p.size_value ?? "")}</td>
-      <td>${escapeHtml(p.unit_nombre)} ${p.unit_value ?? ""}</td>
+      <td>${escapeHtml(p.size_value ?? "")} ${escapeHtml(p.size_nombre)}</td>
+      <td>${p.unit_value ?? ""} ${escapeHtml(p.unit_nombre)}</td>
       <td><span class="font-bold ${stockCls}">${stockN}</span></td>
       <td>${renderCajasBadges(p.producto_id)}</td>`;
     frag.appendChild(tr);
@@ -435,16 +435,31 @@ const QUICK = {
   caja: {
     title: "Nueva caja",
     fields: [
-      { id: "qLetra", label: "Letra (A–ZZ)", type: "text", required: true, maxlength: 2 },
-      { id: "qCara",  label: "Cara (1 o 2)", type: "number", required: true, min: 1, max: 2 },
-      { id: "qNivel", label: "Nivel",         type: "number", required: true, min: 1, max: 99 }
+      {
+        id: "qLetra1", label: "Letra", type: "select", required: true,
+        options: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(l => ({ value: l, label: l }))
+      },
+      {
+        id: "qLetra2", label: "Segunda letra (opcional)", type: "select", required: false,
+        options: [{ value: "", label: "— ninguna —" },
+                  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(l => ({ value: l, label: l }))]
+      },
+      {
+        id: "qCara", label: "Cara", type: "select", required: true,
+        options: [{ value: "1", label: "1 — FRENTE" }, { value: "2", label: "2 — ATRÁS" }]
+      },
+      {
+        id: "qNivel", label: "Nivel", type: "select", required: true,
+        options: [{ value: "1", label: "1 — ARRIBA" }, { value: "2", label: "2 — ABAJO" }]
+      }
     ],
-    submit: async ({ qLetra, qCara, qNivel }) => {
-      const r = assertOk(await cajasAPI.insert({ letra: qLetra, cara: Number(qCara), nivel: Number(qNivel) }));
+    submit: async ({ qLetra1, qLetra2, qCara, qNivel }) => {
+      const letra = qLetra2 ? qLetra1 + qLetra2 : qLetra1;
+      const r = assertOk(await cajasAPI.insert({ letra, cara: Number(qCara), nivel: Number(qNivel) }));
       const row = asArray(r)[0] || {};
       return {
         id: row.caja_id,
-        label: row.etiqueta || `${qLetra}-${qCara}-${qNivel}`,
+        label: row.etiqueta || `${letra}-${qCara}-${qNivel}`,
         targetSelect: "pCaja",
         cache: "cajas"
       };
@@ -452,30 +467,46 @@ const QUICK = {
   }
 };
 
+const INPUT_CLS = "w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-white";
+const LABEL_CLS = "block font-semibold text-textMain text-sm mb-1";
+
 function openQuickModal(kind) {
   const cfg = QUICK[kind];
   if (!cfg) return;
   $("quickTitle").textContent = cfg.title;
   const holder = $("quickFields");
   holder.innerHTML = "";
+
   for (const f of cfg.fields) {
     const wrap = document.createElement("div");
-    wrap.style.marginBottom = ".6rem";
-    const attrs = [
-      `id="${f.id}"`,
-      `class="form-control"`,
-      `type="${f.type}"`,
-      f.required ? "required" : "",
-      f.maxlength ? `maxlength="${f.maxlength}"` : "",
-      f.min != null ? `min="${f.min}"` : "",
-      f.max != null ? `max="${f.max}"` : ""
-    ].filter(Boolean).join(" ");
-    wrap.innerHTML = `<label class="form-label">${f.label}${f.required ? '<span class="required-star">*</span>' : ""}</label><input ${attrs} />`;
+    wrap.className = "flex flex-col gap-1";
+    const labelHtml = `<label for="${f.id}" class="${LABEL_CLS}">${escapeHtml(f.label)}${f.required ? '<span class="required-star">*</span>' : ""}</label>`;
+
+    if (f.type === "select") {
+      // Build <select> from options array: [{ value, label }]
+      const opts = (f.options || []).map(o =>
+        `<option value="${escapeHtml(String(o.value))}">${escapeHtml(String(o.label))}</option>`
+      ).join("");
+      wrap.innerHTML = `${labelHtml}<select id="${f.id}" class="${INPUT_CLS}"${f.required ? " required" : ""}>${opts}</select>`;
+    } else {
+      const attrs = [
+        `id="${f.id}"`,
+        `class="${INPUT_CLS}"`,
+        `type="${f.type}"`,
+        f.required ? "required" : "",
+        f.maxlength ? `maxlength="${f.maxlength}"` : "",
+        f.min != null ? `min="${f.min}"` : "",
+        f.max != null ? `max="${f.max}"` : "",
+        f.placeholder ? `placeholder="${escapeHtml(f.placeholder)}"` : ""
+      ].filter(Boolean).join(" ");
+      wrap.innerHTML = `${labelHtml}<input ${attrs} />`;
+    }
     holder.appendChild(wrap);
   }
+
   $("formQuick").dataset.kind = kind;
   openModal("modalQuick");
-  setTimeout(() => holder.querySelector("input")?.focus(), 50);
+  setTimeout(() => holder.querySelector("input, select")?.focus(), 50);
 }
 
 async function submitQuick(ev) {

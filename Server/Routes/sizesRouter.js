@@ -44,13 +44,21 @@ Router.post('/insert', requireAuth, async (req, res) => {
   }
 });
 
+// Nombres reservados que no pueden modificarse ni eliminarse
+const PROTECTED_SIZES = ['Sin Dimensiones'];
+
 /* UPDATE (auth) */
 Router.post('/update', requireAuth, async (req, res) => {
   try {
     const body = req.body;
-    console.log('sizes_update body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, UpdateRules);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (update)', errors });
+
+    // Proteger valores predeterminados del sistema
+    const existing = await db.executeProc('sizes_get_by_id', { size_id: { type: sql.Int, value: Number(body.size_id) } });
+    if (existing?.length && PROTECTED_SIZES.includes(existing[0].nombre)) {
+      return res.status(400).json({ success:false, message:`"${existing[0].nombre}" es un valor predeterminado del sistema y no puede modificarse.` });
+    }
 
     const params = BuildParams([
       { name:'size_id', type: sql.Int,           value: Number(body.size_id) },
@@ -69,9 +77,14 @@ Router.post('/update', requireAuth, async (req, res) => {
 Router.post('/delete', requireAdmin, async (req, res) => {
   try {
     const body = req.body;
-    console.log('sizes_delete body:', body); // Debug log
     const { isValid, errors } = await ValidationService.validateData(body, DeleteRules);
     if (!isValid) return res.status(400).json({ success:false, message:'Datos inválidos (delete)', errors });
+
+    // Proteger valores predeterminados del sistema
+    const existing = await db.executeProc('sizes_get_by_id', { size_id: { type: sql.Int, value: Number(body.size_id) } });
+    if (existing?.length && PROTECTED_SIZES.includes(existing[0].nombre)) {
+      return res.status(400).json({ success:false, message:`"${existing[0].nombre}" es un valor predeterminado del sistema y no puede eliminarse.` });
+    }
 
     const params = BuildParams([{ name:'size_id', type: sql.Int, value: Number(body.size_id) }]);
     await db.executeProc('sizes_delete', params);
