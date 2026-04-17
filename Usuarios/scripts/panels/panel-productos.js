@@ -677,8 +677,61 @@ function stkOpenAddModal() {
 
   $("addProdName").textContent = stk.producto?.nombre || `#${stk.producto_id}`;
   $("addDelta").value = "";
+
+  // Resetear generador de etiqueta
+  ["addLetra1","addLetra2","addCara","addNivel"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+  const prev = $("addEtiquetaPreview");
+  if (prev) { prev.textContent = ""; prev.className = "text-xs min-h-[1.1rem]"; }
+
   openModal("modalAddStock");
 }
+/* Rellena las opciones A-Z del generador de etiqueta en Agregar (se llama una sola vez) */
+function populateAddGenSelects() {
+  const sel1 = $("addLetra1");
+  const sel2 = $("addLetra2");
+  if (!sel1 || !sel2 || sel1.options.length > 1) return; // ya pobladas
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
+    sel1.add(new Option(l, l));
+    sel2.add(new Option(l, l));
+  });
+}
+
+/* Calcula la etiqueta y auto-selecciona la caja en el select de Agregar */
+function syncAddCajaFromGenerator() {
+  const l1    = $("addLetra1")?.value || "";
+  const l2    = $("addLetra2")?.value || "";
+  const cara  = $("addCara")?.value   || "";
+  const nivel = $("addNivel")?.value  || "";
+  const preview = $("addEtiquetaPreview");
+
+  const reset = () => {
+    if (preview) { preview.textContent = ""; preview.className = "text-xs min-h-[1.1rem]"; }
+  };
+
+  if (!l1 || !cara || !nivel) { reset(); return; }
+
+  const etiqueta = `${l1}${l2}-${cara}-${nivel}`;
+  // Buscar en todas las cajas disponibles (no solo las que tienen stock del producto)
+  const caja = state.cat.cajas.find(c => (c.etiqueta || "").toUpperCase() === etiqueta.toUpperCase());
+  const sel  = $("addCajaSelect");
+
+  if (caja) {
+    sel.value = String(caja.caja_id);
+    const stockActual = stk.detalles.find(d => String(d.caja_id) === String(caja.caja_id))?.stock ?? null;
+    if (preview) {
+      const stockInfo = stockActual !== null ? `  (stock actual: ${stockActual})` : "  (sin stock previo)";
+      preview.textContent = `✓ ${etiqueta}${stockInfo}`;
+      preview.className = "text-xs min-h-[1.1rem] text-success font-medium";
+    }
+  } else {
+    sel.value = "";
+    if (preview) {
+      preview.textContent = `${etiqueta} — caja no registrada en el sistema`;
+      preview.className = "text-xs min-h-[1.1rem] text-textMuted italic";
+    }
+  }
+}
+
 function stkOpenRemoveModal() {
   if (!stk.producto_id) return toast("Selecciona un producto primero", "error", "fa-circle-exclamation");
 
@@ -697,7 +750,7 @@ function stkOpenRemoveModal() {
     sel.appendChild(empty);
     for (const d of cajasConStock) {
       const op = document.createElement("option");
-      op.value = String(d.detalle_id);               // ← detalle_id, no caja_id
+      op.value = String(d.detalle_id);
       op.textContent = `${escapeHtml(d.etiqueta || `Detalle #${d.detalle_id}`)}  (stock: ${d.stock})`;
       sel.appendChild(op);
     }
@@ -811,6 +864,12 @@ function wire() {
   $("btnOpenRemoveStock")?.addEventListener("click", stkOpenRemoveModal);
   $("formAddStock")?.addEventListener("submit", stkSubmitAdd);
   $("formRemoveStock")?.addEventListener("submit", stkSubmitRemove);
+
+  // Generador de etiqueta en modal Agregar
+  populateAddGenSelects();
+  ["addLetra1","addLetra2","addCara","addNivel"].forEach(id =>
+    $(id)?.addEventListener("change", syncAddCajaFromGenerator)
+  );
 
   // Cierre genérico de modales: botones con data-close-modal
   document.querySelectorAll("[data-close-modal]").forEach(btn => {
